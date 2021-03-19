@@ -1,6 +1,15 @@
 <template>
   <div class="board-container">
-    <p>{{ board.moves.join(', ') }}</p>
+    <div class="sidebar">
+      <p><b>FEN</b>: {{ board.fen }}</p>
+      <div class="moves">
+        <template v-for="(moveSet, i) in board.moves" :key="i">
+          <span>{{ i + 1 }}.</span>
+          <span><b>{{ moveSet[0] }}</b></span>
+          <span><b>{{ moveSet[1] }}</b></span>
+        </template>
+      </div>
+    </div>
     <div class="squares">
       <template v-for="(file, i) in board.squares">
         <template :key="square.notation()" v-for="(square, j) in file">
@@ -15,21 +24,22 @@
                 v-if="square.getPiece()"
                 draggable="true"
                 class="piece"
-                @mousedown="showLegalMoves(square)"
                 @dragstart="dragStart(square)"
                 :src="square.getPiece().imageSrc()"
-                :alt="square.getPiece()"/>
+                :alt="square.getPiece().constructor.name"/>
             <div v-if="square.isLegal" class="move-indicator"/>
           </div>
         </template>
       </template>
     </div>
   </div>
+
+  <button type="button" class="btn btn-primary">New Game</button>
 </template>
 
 <script>
-//import { Droppable } from '@shopify/draggable';
 import {Chessboard} from "@/models/Chessboard";
+//require('bootstrap')
 
 export default {
   name: 'ChessboardView',
@@ -52,9 +62,14 @@ export default {
       e.preventDefault(); // prevents chrome bug
     },
     dragStart(square) {
+      this.showLegalMoves(square);
       this.currentSquare = square;
     },
     showLegalMoves(square) {
+      if (square.getPiece().colour !== this.board.activeColor) {
+        return;
+      }
+
       this.board.clearLegalMoves();
       this.board.calculateLegalMoves(square);
     },
@@ -67,27 +82,47 @@ export default {
         this.clearLegalMoves()
       }
     },
-  }
+  },
 }
 </script>
 
 <style scoped>
 .board-container {
   display: flex;
+  height: 100%;
   align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  width: 30vw;
+  align-items: center;
+  display: flex;
   flex-direction: column;
+}
+
+.moves {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  grid-column-gap: 20px;
+  grid-row-gap: 5px;
 }
 
 .squares {
   display: grid;
-  width: fit-content;
+  width: 40vw;
+  margin: 5vh;
+  height: fit-content;
   grid-template-columns: repeat(8, auto);
   grid-template-rows: repeat(8, auto);
 }
 
 .square {
-  width: 100px;
-  height: 100px;
+  width: 5vw;
+  height: 5vw;
   cursor: grab;
   position: relative;
 }
@@ -97,8 +132,8 @@ export default {
 }
 
 .piece {
-  width: 100px;
-  height: 100px;
+  width: 5vw;
+  height: 5vw;
   z-index: 5;
 }
 
@@ -120,5 +155,15 @@ export default {
   left: 30%;
   opacity: 0.5;
   z-index: 0;
+  pointer-events: none;
+}
+
+.piece + .move-indicator {
+  height: 100%;
+  width: 100%;
+  background-color: #bc5a71;
+  top: 0;
+  left: 0;
+  mask: radial-gradient(transparent 50%, #000000 50%);
 }
 </style>

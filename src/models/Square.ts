@@ -1,4 +1,4 @@
-import {Piece} from "@/models/Piece";
+import {Piece} from "@/models/pieces/Piece";
 
 export class Square {
     LOWERCASE_CHAR_OFFSET = 97;
@@ -15,7 +15,11 @@ export class Square {
     }
 
     notation() {
-        return `${String.fromCharCode(this.file + this.LOWERCASE_CHAR_OFFSET)}${this.rank + 1}`
+        return `${this.fileLetter()}${this.rank + 1}`
+    }
+
+    fileLetter() {
+        return String.fromCharCode(this.file + this.LOWERCASE_CHAR_OFFSET);
     }
 
     setPiece(piece: Piece | null) {
@@ -23,7 +27,7 @@ export class Square {
     }
 
     removePiece() {
-        let removedPiece = this._piece;
+        const removedPiece = this._piece;
         this._piece = null;
         return removedPiece;
     }

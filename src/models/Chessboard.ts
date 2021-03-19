@@ -1,89 +1,51 @@
 import {Square} from "./Square";
-import {Pawn} from "@/models/Pawn";
-import {Rook} from "@/models/Rook";
-import {Bishop} from "@/models/Bishop";
-import {Knight} from "@/models/Knight";
-import {Queen} from "@/models/Queen";
-import {King} from "@/models/King";
+import {Pawn} from "@/models/pieces/Pawn";
+import {Rook} from "@/models/pieces/Rook";
+import {Bishop} from "@/models/pieces/Bishop";
+import {Knight} from "@/models/pieces/Knight";
+import {Queen} from "@/models/pieces/Queen";
+import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/Piece-Colour";
 
 export class Chessboard {
     squares: Square[][] = [];
     ranks: number = 0;
     files: number = 0;
-    moves: string[] = [];
-    fen: string = '';
+    moves: string[][] = [];
+    fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    activeColor: PieceColour = PieceColour.WHITE
 
     constructor(ranks: number, files: number) {
         this.ranks = ranks;
         this.files = files;
-        //this.init();
-        //this.initByFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-        this.initByFen('rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2');
+        //this.fen = '4k3/8/8/8/8/8/4P3/4K3 b - - 5 39';
+
+        this.init(this.fen);
     }
 
-    init() {
-        let arr: Square[][] = [];
-        for (let file = 0; file < this.files; file++) {
-            if (!arr[file]) {
-                arr[file] = [];
-            }
-            for (let rank = 0; rank < this.ranks; rank++) {
-                arr[file][rank] = new Square(file, rank);
-            }
-        }
+    init(fen: string) {
+        this.squares = this.createEmptyBoard();
 
-        this.squares = arr;
-
-        for (let rank = 0; rank < this.ranks; rank++) {
-            this.squares[1][rank].setPiece(new Pawn(PieceColour.BLACK));
-        }
-
-        this.squares[0][0].setPiece(new Rook(PieceColour.BLACK))
-        this.squares[0][7].setPiece(new Rook(PieceColour.BLACK))
-
-        this.squares[0][2].setPiece(new Bishop(PieceColour.BLACK))
-        this.squares[0][5].setPiece(new Bishop(PieceColour.BLACK))
-
-        this.squares[0][1].setPiece(new Knight(PieceColour.BLACK))
-        this.squares[0][6].setPiece(new Knight(PieceColour.BLACK))
-
-        this.squares[0][3].setPiece(new Queen(PieceColour.BLACK))
-        this.squares[0][4].setPiece(new King(PieceColour.BLACK))
-    }
-
-    initByFen(fen: string) {
-        let arr: Square[][] = [];
-        for (let file = 0; file < this.files; file++) {
-            if (!arr[file]) {
-                arr[file] = [];
-            }
-            for (let rank = 0; rank < this.ranks; rank++) {
-                arr[file][rank] = new Square(file, rank);
-            }
-        }
-
-        this.squares = arr;
-
-        let data = fen.split(' ');
-        let rows = data[0].split('/');
+        const data = fen.split(' ');
+        const rows = data[0].split('/');
+        const active = data[1];
+        this.activeColor = active === 'w' ? PieceColour.WHITE : PieceColour.BLACK;
 
         let rank = 0;
         let file = 0;
 
-        for (let row of rows) {
-            for (let character of row) {
+        for (const row of rows) {
+            for (const character of row) {
                 if (this.isLetter(character)) {
-                    let piece = this.createPieceFromChar(character);
+                    const piece = this.createPieceFromChar(character);
 
-                    if (piece) { // temp?
+                    if (piece) {
                         this.squares[rank][file].setPiece(piece);
                     }
 
                     file += 1;
                 } else {
-                    let emptySpaces = +character;
-
+                    const emptySpaces = +character;
                     file += emptySpaces
                 }
             }
@@ -93,29 +55,41 @@ export class Chessboard {
         }
     }
 
+    createEmptyBoard() {
+        const arr: Square[][] = [];
+        for (let file = 0; file < this.files; file++) {
+            if (!arr[file]) {
+                arr[file] = [];
+            }
+            for (let rank = 0; rank < this.ranks; rank++) {
+                arr[file][rank] = new Square(file, rank);
+            }
+        }
+        return arr;
+    }
+
     createPieceFromChar(char: string) {
-        switch (char.toLowerCase()) {
-            case 'r':
+        switch (char.toUpperCase()) {
+            case 'R':
                 return new Rook(this.getPieceColor(char))
 
-            case 'n':
+            case 'N':
                 return new Knight(this.getPieceColor(char))
 
-            case 'b':
+            case 'B':
                 return new Bishop(this.getPieceColor(char))
 
-            case 'q':
+            case 'Q':
                 return new Queen(this.getPieceColor(char))
 
-            case 'k':
+            case 'K':
                 return new King(this.getPieceColor(char))
 
-            case 'p':
+            case 'P':
                 return new Pawn(this.getPieceColor(char))
 
             default:
-                //throw Error('Unrecognised character in FEN ' + char)
-                break;
+                throw Error('Unrecognised character in FEN ' + char);
         }
     }
 
@@ -130,16 +104,64 @@ export class Chessboard {
     }
 
     clearLegalMoves() {
-        for (let file of this.squares) {
-            for (let square of file) {
+        for (const file of this.squares) {
+            for (const square of file) {
                 square.isLegal = false;
             }
         }
     }
 
+    // make move class?
+    recordMove(fromSquare: Square, toSquare: Square, capturingMove: boolean) {
+        let move = toSquare.notation();
+
+        if (capturingMove) {
+            move = 'x' + move
+
+            if (fromSquare.getPiece() instanceof Pawn &&
+                fromSquare.getPiece()?.moveHistory.length != 0) {
+                move = fromSquare.fileLetter() + move;
+            }
+        }
+
+        if (!(fromSquare.getPiece() instanceof Pawn)) {
+            move = fromSquare.getPiece()?.notation + move;
+        }
+
+        move = fromSquare.getPiece()?.symbol() + '\t' + move;
+
+        fromSquare.getPiece()?.recordMove(move);
+
+        if (this.activeColor === PieceColour.WHITE) {
+            this.moves.push([move]);
+        } else {
+            if (this.moves.length === 0) {
+                this.moves.push([]);
+            }
+
+            this.moves[this.moves.length - 1].push(move);
+        }
+    }
+
+    // pivot to pieces recalculating legal moves after every move?
+    // then show legal moves based on currentSquare
+    // and unset currentSquare instead of clearLegalSquares
     move(fromSquare: Square, toSquare: Square) {
-        this.moves.push(toSquare.notation());
-        let piece = fromSquare.removePiece();
+        let capturingMove = toSquare.getPiece() !== null;
+
+        // en passant
+        if (fromSquare.getPiece() instanceof Pawn &&
+            toSquare.file !== fromSquare.file &&
+            this.squares[fromSquare.rank][toSquare.file].getPiece() instanceof Pawn) {
+            this.squares[fromSquare.rank][toSquare.file].removePiece()
+            capturingMove = true;
+        }
+
+        this.recordMove(fromSquare, toSquare, capturingMove);
+        const piece = fromSquare.removePiece();
         toSquare.setPiece(piece);
+
+        this.activeColor = this.activeColor ===
+        PieceColour.WHITE ? PieceColour.BLACK : PieceColour.WHITE;
     }
 }

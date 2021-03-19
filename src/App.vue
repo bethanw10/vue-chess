@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <ChessboardView msg="Welcome to Your Vue.js App"/>
+    <ChessboardView/>
   </div>
 </template>
 
@@ -16,8 +16,13 @@ export default {
 </script>
 
 <style>
-body {
+* {
+  box-sizing: border-box;
+}
+
+html, body {
   background: #2c3e50;
+  margin: 0;
 }
 
 #app {
