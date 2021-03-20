@@ -1,9 +1,11 @@
 import {Square} from "@/models/Square";
 import {PieceColour} from "@/models/Piece-Colour";
+import {Chessboard} from "@/models/Chessboard";
 
 export abstract class Piece {
     abstract readonly notation: string;
 
+    // todo change to hasMoved?
     moveHistory: string[] = []
 
     colour: PieceColour;
@@ -14,7 +16,7 @@ export abstract class Piece {
 
     abstract imageSrc(): string
 
-    abstract calculateLegalMoves(square: Square, squares: Square[][]): void
+    abstract calculateLegalMoves(square: Square, board: Chessboard): void
 
     abstract symbol(): string
 
@@ -65,7 +67,8 @@ export abstract class Piece {
     }
 
     protected canCapture(capturingSquare: Square, targetSquare: Square) {
-        return targetSquare.getPiece()?.colour &&
+        return targetSquare &&
+            targetSquare.getPiece()?.colour &&
             capturingSquare.getPiece()?.colour !== targetSquare.getPiece()?.colour;
     }
 

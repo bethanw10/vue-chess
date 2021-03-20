@@ -6,27 +6,28 @@ import {Knight} from "@/models/pieces/Knight";
 import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/Piece-Colour";
+import {MoveHistory} from "@/models/Move";
 
 export class Chessboard {
     squares: Square[][] = [];
-    ranks: number = 0;
-    files: number = 0;
+    ranks: number = 8;
+    files: number = 8;
     moves: string[][] = [];
+    movesAlt: MoveHistory = new MoveHistory;
+
     fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     activeColor: PieceColour = PieceColour.WHITE
 
-    constructor(ranks: number, files: number) {
-        this.ranks = ranks;
-        this.files = files;
+    constructor() {
         //this.fen = '4k3/8/8/8/8/8/4P3/4K3 b - - 5 39';
 
-        this.init(this.fen);
+        this.init();
     }
 
-    init(fen: string) {
+    init() {
         this.squares = this.createEmptyBoard();
 
-        const data = fen.split(' ');
+        const data = this.fen.split(' ');
         const rows = data[0].split('/');
         const active = data[1];
         this.activeColor = active === 'w' ? PieceColour.WHITE : PieceColour.BLACK;
@@ -53,6 +54,11 @@ export class Chessboard {
             file = 0
             rank += 1;
         }
+    }
+
+    reset() {
+        this.moves = [];
+        this.init();
     }
 
     createEmptyBoard() {
@@ -100,7 +106,7 @@ export class Chessboard {
     isLetter = (string: string) => /[a-zA-Z]/.test(string)
 
     calculateLegalMoves(square: Square) {
-        square.getPiece()?.calculateLegalMoves(square, this.squares);
+        square.getPiece()?.calculateLegalMoves(square, this);
     }
 
     clearLegalMoves() {
@@ -112,6 +118,7 @@ export class Chessboard {
     }
 
     // make move class?
+    // todo represent castling
     recordMove(fromSquare: Square, toSquare: Square, capturingMove: boolean) {
         let move = toSquare.notation();
 
@@ -143,25 +150,55 @@ export class Chessboard {
         }
     }
 
-    // pivot to pieces recalculating legal moves after every move?
+    // todo pivot to pieces recalculating legal moves after every move?
     // then show legal moves based on currentSquare
     // and unset currentSquare instead of clearLegalSquares
     move(fromSquare: Square, toSquare: Square) {
         let capturingMove = toSquare.getPiece() !== null;
 
         // en passant
-        if (fromSquare.getPiece() instanceof Pawn &&
-            toSquare.file !== fromSquare.file &&
-            this.squares[fromSquare.rank][toSquare.file].getPiece() instanceof Pawn) {
+        if (this.isEnPassant(fromSquare, toSquare)) {
             this.squares[fromSquare.rank][toSquare.file].removePiece()
             capturingMove = true;
         }
 
+        // kingside castle
+        if (this.isKingsideCastle(fromSquare, toSquare)) {
+            const rook = this.squares[fromSquare.rank][7].removePiece()
+            this.squares[fromSquare.rank][5].setPiece(rook);
+        }
+
+        if (this.isQueensideCastle(fromSquare, toSquare)) {
+            const rook = this.squares[fromSquare.rank][0].removePiece()
+            this.squares[fromSquare.rank][3].setPiece(rook);
+        }
+
         this.recordMove(fromSquare, toSquare, capturingMove);
+
+        this.movesAlt.recordMove(fromSquare, toSquare, capturingMove);
+
         const piece = fromSquare.removePiece();
         toSquare.setPiece(piece);
 
         this.activeColor = this.activeColor ===
         PieceColour.WHITE ? PieceColour.BLACK : PieceColour.WHITE;
+    }
+
+    private isKingsideCastle(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof King &&
+            fromSquare.getPiece()?.moveHistory.length == 0 &&
+            toSquare.file === 6;
+    }
+
+    private isQueensideCastle(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof King &&
+            fromSquare.getPiece()?.moveHistory.length == 0 &&
+            toSquare.file === 2;
+    }
+
+    private isEnPassant(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof Pawn &&
+            toSquare.file !== fromSquare.file &&
+            this.squares[fromSquare.rank][toSquare.file].getPiece() instanceof Pawn;
     }
 }

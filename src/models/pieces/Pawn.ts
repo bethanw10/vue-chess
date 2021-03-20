@@ -1,6 +1,7 @@
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/Piece-Colour";
+import {Chessboard} from "@/models/Chessboard";
 
 export class Pawn extends Piece {
     readonly notation: string = 'P';
@@ -13,17 +14,23 @@ export class Pawn extends Piece {
         return require(`@/assets/pieces/${this.colour.toString()}/pawn.svg`)
     }
 
-    calculateLegalMoves(square: Square, squares: Square[][]) {
+    symbol(): string {
+        return this.colour === PieceColour.WHITE ? '♟' : '♙';
+    }
+
+    calculateLegalMoves(square: Square, board: Chessboard) {
+        const squares = board.squares;
+        const {rank, file} = square;
+
         // White pawns move up the board and black pawns move down
         const dy = this.colour == PieceColour.WHITE ? 1 : -1;
         const startRank = this.colour == PieceColour.WHITE ? 1 : 6;
 
-        const {rank, file} = square;
         if (rank === squares.length - 1) {
             return;
         }
 
-        // todo en passant
+        // todo en passant only straight after
         // todo promotion
 
         // Capturing
@@ -36,12 +43,12 @@ export class Pawn extends Piece {
         }
 
         // En passant
-        const directions = [1, -1]
+        const directions = [1, -1];
 
         for (const dx of directions) {
             if (this.canCapture(square, squares[rank][file + dx])) {
-                const piece = squares[rank][file + dx].getPiece()
-                if (piece?.moveHistory.length == 1) {
+                const piece = squares[rank][file + dx].getPiece();
+                if (piece?.moveHistory.length == 1 && this.pieceMovedLast(piece, board)) {
                     squares[rank + dy][file + dx].isLegal = true;
                 }
             }
@@ -59,8 +66,15 @@ export class Pawn extends Piece {
         }
     }
 
-    symbol(): string {
-        return this.colour === PieceColour.WHITE ? '♟' : '♙';
+    pieceMovedLast(piece: Piece, board: Chessboard): boolean {
+        const lastPieceMove = piece.moveHistory[piece.moveHistory.length - 1];
+        let lastMove = board.moves[board.moves.length - 1][1];
+
+        if (!lastMove) {
+            lastMove = board.moves[board.moves.length - 1][0];
+        }
+
+        return lastPieceMove === lastMove
     }
 }
 

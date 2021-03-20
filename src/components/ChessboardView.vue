@@ -1,6 +1,7 @@
 <template>
   <div class="board-container">
     <div class="sidebar">
+      <button type="button" class="btn btn-primary" @click="newGame()">New Game</button>
       <p><b>FEN</b>: {{ board.fen }}</p>
       <div class="moves">
         <template v-for="(moveSet, i) in board.moves" :key="i">
@@ -22,8 +23,9 @@
               @drop="movePiece($event, square)">
             <img
                 v-if="square.getPiece()"
-                draggable="true"
+                :draggable="pieceIsMoveable(square)"
                 class="piece"
+                :class="{'moveable' : pieceIsMoveable(square)}"
                 @dragstart="dragStart(square)"
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
@@ -33,13 +35,10 @@
       </template>
     </div>
   </div>
-
-  <button type="button" class="btn btn-primary">New Game</button>
 </template>
 
 <script>
 import {Chessboard} from "@/models/Chessboard";
-//require('bootstrap')
 
 export default {
   name: 'ChessboardView',
@@ -52,7 +51,7 @@ export default {
     }
   },
   created() {
-    this.board = new Chessboard(this.ranks, this.files)
+    this.board = new Chessboard()
   },
   methods: {
     squareColour(i, j) {
@@ -82,6 +81,12 @@ export default {
         this.clearLegalMoves()
       }
     },
+    pieceIsMoveable(square) {
+      return this.board.activeColor === square.getPiece().colour;
+    },
+    newGame() {
+      this.board.reset();
+    }
   },
 }
 </script>
@@ -109,6 +114,12 @@ export default {
   grid-template-columns: repeat(3, max-content);
   grid-column-gap: 20px;
   grid-row-gap: 5px;
+  align-items: baseline;
+  text-align: left;
+}
+
+.moves div:nth-child(3n-3) {
+  border: 2px dashed red;
 }
 
 .squares {
@@ -123,11 +134,14 @@ export default {
 .square {
   width: 5vw;
   height: 5vw;
-  cursor: grab;
   position: relative;
 }
 
-.piece:active {
+.piece.moveable {
+  cursor: grab;
+}
+
+.piece.moveable:active {
   cursor: grabbing;
 }
 
@@ -156,6 +170,10 @@ export default {
   opacity: 0.5;
   z-index: 0;
   pointer-events: none;
+}
+
+.square:drop {
+  background: #bc5a71;
 }
 
 .piece + .move-indicator {

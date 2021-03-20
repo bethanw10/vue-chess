@@ -1,6 +1,7 @@
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/Piece-Colour";
+import {Chessboard} from "@/models/Chessboard";
 
 export class Knight extends Piece {
     readonly notation: string = 'N';
@@ -13,9 +14,9 @@ export class Knight extends Piece {
         return require(`@/assets/pieces/${this.colour.toString()}/knight.svg`)
     }
 
-    calculateLegalMoves(square: Square, squares: Square[][]) {
+    calculateLegalMoves(square: Square, board: Chessboard) {
         const directions = [[2, 1], [2, -1], [1, 2], [-1, 2], [-2, 1], [-2, -1], [1, -2], [-1, -2]];
-        this.calculateMovesLimited(square, directions, squares);
+        this.calculateMovesLimited(square, directions, board.squares);
     }
 
     symbol(): string {
