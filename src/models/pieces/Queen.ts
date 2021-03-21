@@ -11,7 +11,7 @@ export class Queen extends Piece {
     }
 
     imageSrc(): string {
-        return require(`@/assets/pieces/${this.colour.toString()}/queen.svg`)
+        return Piece.imageSrc(this.colour, "queen");
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {

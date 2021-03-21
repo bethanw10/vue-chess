@@ -7,6 +7,7 @@ import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/Piece-Colour";
 import {MoveHistory} from "@/models/Move";
+import {Piece} from "@/models/pieces/Piece";
 
 export class Chessboard {
     squares: Square[][] = [];
@@ -17,6 +18,7 @@ export class Chessboard {
 
     fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
     activeColor: PieceColour = PieceColour.WHITE
+    promotion: Square | null = null;
 
     constructor() {
         //this.fen = '4k3/8/8/8/8/8/4P3/4K3 b - - 5 39';
@@ -119,6 +121,7 @@ export class Chessboard {
 
     // make move class?
     // todo represent castling
+    // todo represent promotion
     recordMove(fromSquare: Square, toSquare: Square, capturingMove: boolean) {
         let move = toSquare.notation();
 
@@ -135,10 +138,24 @@ export class Chessboard {
             move = fromSquare.getPiece()?.notation + move;
         }
 
-        move = fromSquare.getPiece()?.symbol() + '\t' + move;
+        move = fromSquare.getPiece()?.symbol() + ' ' + move;
 
         fromSquare.getPiece()?.recordMove(move);
 
+        this.saveMove(move);
+    }
+
+    // make move class?
+    // todo represent castling
+    private recordPromotion(toSquare: Square, piece: Piece) {
+        let move = toSquare.notation();
+        move = `${piece.symbol()} ${move}=${piece.notation}`;
+        piece.recordMove(move);
+
+        this.saveMove(move);
+    }
+
+    private saveMove(move: string) {
         if (this.activeColor === PieceColour.WHITE) {
             this.moves.push([move]);
         } else {
@@ -153,28 +170,34 @@ export class Chessboard {
     // todo pivot to pieces recalculating legal moves after every move?
     // then show legal moves based on currentSquare
     // and unset currentSquare instead of clearLegalSquares
+    // todo event promotion instead of use data?
     move(fromSquare: Square, toSquare: Square) {
         let capturingMove = toSquare.getPiece() !== null;
 
-        // en passant
         if (this.isEnPassant(fromSquare, toSquare)) {
             this.squares[fromSquare.rank][toSquare.file].removePiece()
             capturingMove = true;
         }
 
-        // kingside castle
-        if (this.isKingsideCastle(fromSquare, toSquare)) {
+        if (Chessboard.isKingsideCastle(fromSquare, toSquare)) {
             const rook = this.squares[fromSquare.rank][7].removePiece()
             this.squares[fromSquare.rank][5].setPiece(rook);
         }
 
-        if (this.isQueensideCastle(fromSquare, toSquare)) {
+        if (Chessboard.isQueensideCastle(fromSquare, toSquare)) {
             const rook = this.squares[fromSquare.rank][0].removePiece()
             this.squares[fromSquare.rank][3].setPiece(rook);
         }
 
-        this.recordMove(fromSquare, toSquare, capturingMove);
+        // Promotion
+        if (Chessboard.isPromotion(fromSquare, toSquare)) {
+            const piece = fromSquare.removePiece();
+            toSquare.setPiece(piece);
+            this.promptPromotion(toSquare);
+            return;
+        }
 
+        this.recordMove(fromSquare, toSquare, capturingMove);
         this.movesAlt.recordMove(fromSquare, toSquare, capturingMove);
 
         const piece = fromSquare.removePiece();
@@ -184,21 +207,59 @@ export class Chessboard {
         PieceColour.WHITE ? PieceColour.BLACK : PieceColour.WHITE;
     }
 
-    private isKingsideCastle(fromSquare: Square, toSquare: Square) {
+    promote(square: Square, promotionPiece: string) {
+        const pawn = square.removePiece();
+
+        let piece = null;
+        switch (promotionPiece) {
+            default:
+            case "queen":
+                piece = new Queen(<PieceColour>pawn?.colour);
+                break;
+            case "rook":
+                piece = new Rook(<PieceColour>pawn?.colour);
+                break;
+            case "bishop":
+                piece = new Bishop(<PieceColour>pawn?.colour);
+                break;
+            case "knight":
+                piece = new Knight(<PieceColour>pawn?.colour);
+                break;
+        }
+
+        square.setPiece(piece);
+        this.recordPromotion(square, piece);
+
+        this.activeColor = this.activeColor ===
+        PieceColour.WHITE ? PieceColour.BLACK : PieceColour.WHITE;
+
+        this.promotion = null;
+    }
+
+    private static isKingsideCastle(fromSquare: Square, toSquare: Square) {
         return fromSquare.getPiece() instanceof King &&
             fromSquare.getPiece()?.moveHistory.length == 0 &&
             toSquare.file === 6;
     }
 
-    private isQueensideCastle(fromSquare: Square, toSquare: Square) {
+    private static isQueensideCastle(fromSquare: Square, toSquare: Square) {
         return fromSquare.getPiece() instanceof King &&
             fromSquare.getPiece()?.moveHistory.length == 0 &&
             toSquare.file === 2;
+    }
+
+    private static isPromotion(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof Pawn &&
+            (toSquare.rank === 0 || toSquare.rank === 7);
     }
 
     private isEnPassant(fromSquare: Square, toSquare: Square) {
         return fromSquare.getPiece() instanceof Pawn &&
             toSquare.file !== fromSquare.file &&
             this.squares[fromSquare.rank][toSquare.file].getPiece() instanceof Pawn;
+    }
+
+    private promptPromotion(toSquare: Square) {
+        this.promotion = toSquare;
     }
 }

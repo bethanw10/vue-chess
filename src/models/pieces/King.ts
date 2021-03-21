@@ -12,7 +12,7 @@ export class King extends Piece {
     }
 
     imageSrc(): string {
-        return require(`@/assets/pieces/${this.colour.toString()}/king.svg`)
+        return Piece.imageSrc(this.colour, "king");
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {

@@ -11,7 +11,7 @@ export class Pawn extends Piece {
     }
 
     imageSrc(): string {
-        return require(`@/assets/pieces/${this.colour.toString()}/pawn.svg`)
+        return Piece.imageSrc(this.colour, "pawn");
     }
 
     symbol(): string {
@@ -25,8 +25,9 @@ export class Pawn extends Piece {
         // White pawns move up the board and black pawns move down
         const dy = this.colour == PieceColour.WHITE ? 1 : -1;
         const startRank = this.colour == PieceColour.WHITE ? 1 : 6;
+        const promotionRank = this.colour == PieceColour.WHITE ? 7 : 0;
 
-        if (rank === squares.length - 1) {
+        if (rank === promotionRank) {
             return;
         }
 

@@ -5,10 +5,12 @@ import {Chessboard} from "@/models/Chessboard";
 export abstract class Piece {
     abstract readonly notation: string;
 
+    colour: PieceColour;
+
     // todo change to hasMoved?
     moveHistory: string[] = []
 
-    colour: PieceColour;
+    promotable: boolean = false;
 
     protected constructor(colour: PieceColour) {
         this.colour = colour;
@@ -19,6 +21,10 @@ export abstract class Piece {
     abstract calculateLegalMoves(square: Square, board: Chessboard): void
 
     abstract symbol(): string
+
+    static imageSrc(colour: PieceColour, pieceName: string) {
+        return require(`@/assets/pieces/${colour.toString()}/${pieceName}.svg`);
+    }
 
     recordMove(move: string) {
         this.moveHistory.push(move);

@@ -11,7 +11,7 @@ export class Rook extends Piece {
     }
 
     imageSrc(): string {
-        return require(`@/assets/pieces/${this.colour.toString()}/rook.svg`)
+        return Piece.imageSrc(this.colour, "rook");
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {

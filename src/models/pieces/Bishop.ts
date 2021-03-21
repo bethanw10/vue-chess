@@ -11,7 +11,7 @@ export class Bishop extends Piece {
     }
 
     imageSrc(): string {
-        return require(`@/assets/pieces/${this.colour.toString()}/bishop.svg`)
+        return Piece.imageSrc(this.colour, "bishop");
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {

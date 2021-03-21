@@ -23,13 +23,21 @@
               @drop="movePiece($event, square)">
             <img
                 v-if="square.getPiece()"
+                :class="[{'moveable' : pieceIsMoveable(square)}, 'piece']"
                 :draggable="pieceIsMoveable(square)"
-                class="piece"
-                :class="{'moveable' : pieceIsMoveable(square)}"
                 @dragstart="dragStart(square)"
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="square.isLegal" class="move-indicator"/>
+            <div v-if="board.promotion && board.promotion === square" class="promotion">
+              <template :key="piece" v-for="piece in promotions">
+                <img
+                    @click="promote(square, piece)"
+                    class="promotion-piece"
+                    :src="pieceImg(square.getPiece().colour, piece)"
+                    :alt="piece"/>
+              </template>
+            </div>
           </div>
         </template>
       </template>
@@ -39,6 +47,7 @@
 
 <script>
 import {Chessboard} from "@/models/Chessboard";
+import {Piece} from "@/models/pieces/Piece";
 
 export default {
   name: 'ChessboardView',
@@ -47,7 +56,8 @@ export default {
       board: null,
       ranks: 8,
       files: 8,
-      currentSquare: null
+      currentSquare: null,
+      promotions: ["queen", "knight", "bishop", "rook"]
     }
   },
   created() {
@@ -82,10 +92,16 @@ export default {
       }
     },
     pieceIsMoveable(square) {
-      return this.board.activeColor === square.getPiece().colour;
+      return this.board.activeColor === square.getPiece().colour && !this.board.promotion;
     },
     newGame() {
       this.board.reset();
+    },
+    pieceImg(colour, piece) {
+      return Piece.imageSrc(colour, piece);
+    },
+    promote(square, piece) {
+      this.board.promote(square, piece);
     }
   },
 }
@@ -118,8 +134,8 @@ export default {
   text-align: left;
 }
 
-.moves div:nth-child(3n-3) {
-  border: 2px dashed red;
+.moves span:nth-child(3n-2) {
+  text-align: right;
 }
 
 .squares {
@@ -137,6 +153,12 @@ export default {
   position: relative;
 }
 
+.piece {
+  width: 5vw;
+  height: 5vw;
+  z-index: 5;
+}
+
 .piece.moveable {
   cursor: grab;
 }
@@ -145,10 +167,21 @@ export default {
   cursor: grabbing;
 }
 
-.piece {
+.promotion {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  position: absolute;
+  top: 0;
+  background: #acc5aaa3;
   width: 5vw;
   height: 5vw;
-  z-index: 5;
+  z-index: 6;
+}
+
+.promotion-piece {
+  width: 2.5vw;
+  height: 2.5vw;
+  cursor: pointer;
 }
 
 .square.light {
