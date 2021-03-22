@@ -6,8 +6,9 @@ import {Knight} from "@/models/pieces/Knight";
 import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
-import {Move, MoveHistory} from "@/models/Move";
+import {Move} from "@/models/moves/Move";
 import {MoveType} from "@/models/MoveType";
+import {MoveHistory} from "@/models/moves/MoveHistory";
 
 // todo mobile?
 export class Chessboard {

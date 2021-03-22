@@ -1,7 +1,7 @@
 import {Square} from "@/models/Square";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
-import {Move} from "@/models/Move";
+import {Move} from "@/models/moves/Move";
 import {MoveType} from "@/models/MoveType";
 
 export abstract class Piece {

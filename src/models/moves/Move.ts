@@ -1,46 +1,7 @@
 import {Piece} from "@/models/pieces/Piece";
-import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Square} from "@/models/Square";
 import {Pawn} from "@/models/pieces/Pawn";
 import {MoveType} from "@/models/MoveType";
-
-// todo disambiguate after promotion??
-export class MoveHistory {
-    moves: MoveSet[] = []
-
-    constructor() {
-    }
-
-    recordMove(move: Move) {
-        if (move.piece?.colour === PieceColour.WHITE) {
-            this.moves.push(new MoveSet(move));
-        } else {
-            if (this.moves.length === 0) {
-                this.moves.push(new MoveSet());
-            }
-
-            this.moves[this.moves.length - 1].recordBlackMove(move);
-        }
-    }
-
-    lastMove(): Move {
-        const lastMoveSet = this.moves[this.moves.length - 1];
-        return <Move>lastMoveSet.blackMove ?? lastMoveSet.whiteMove;
-    }
-}
-
-export class MoveSet {
-    whiteMove: Move | null = null;
-    blackMove: Move | null = null;
-
-    constructor(whiteMove: Move | null = null) {
-        this.whiteMove = whiteMove
-    }
-
-    recordBlackMove(move: Move) {
-        this.blackMove = move
-    }
-}
 
 export class Move {
     fromSquare: Square;

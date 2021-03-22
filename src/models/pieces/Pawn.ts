@@ -2,7 +2,7 @@ import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
-import {Move} from "@/models/Move";
+import {Move} from "@/models/moves/Move";
 import {MoveType} from "@/models/MoveType";
 
 export class Pawn extends Piece {

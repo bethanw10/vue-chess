@@ -3,7 +3,7 @@ import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 import {Rook} from "@/models/pieces/Rook";
-import {Move} from "@/models/Move";
+import {Move} from "@/models/moves/Move";
 import {MoveType} from "@/models/MoveType";
 
 export class King extends Piece {
