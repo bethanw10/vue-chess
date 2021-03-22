@@ -1,16 +1,14 @@
 import {Square} from "@/models/Square";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
-import {Move, MoveType} from "@/models/Move";
+import {Move} from "@/models/Move";
+import {MoveType} from "@/models/MoveType";
 
 export abstract class Piece {
     abstract readonly notation: string;
     colour: PieceColour;
     hasMoved: boolean = false;
-
-    // Dictionary square to move?
-    // Separate properties?
-    legalMoves: Move[] = []
+    legalMoves: Map<Square, Move> = new Map<Square, Move>()
 
     protected constructor(colour: PieceColour) {
         this.colour = colour;
@@ -30,13 +28,13 @@ export abstract class Piece {
         this.hasMoved = hasMoved;
     }
 
-    getLegalSquares() {
-        return this.legalMoves.map(m => m.toSquare);
+    squareIsLegalMove(square: Square) {
+        return this.legalMoves.has(square);
     }
 
     calculateMovesUnlimited(square: Square, directions: number[][], squares: Square[][]) {
         let dx, dy;
-        const legalSquares = [];
+        const legalSquares = new Map<Square, Move>();
         for (const direction of directions) {
             [dx, dy] = direction;
 
@@ -47,14 +45,14 @@ export abstract class Piece {
                 if (squares[x][y].getPiece()) {
                     if (this.canCapture(square, squares[x][y])) {
                         const move = new Move(square, squares[x][y], this, true, MoveType.Standard);
-                        legalSquares.push(move);
+                        legalSquares.set(squares[x][y], move);
                     }
 
                     break;
                 }
 
                 const move = new Move(square, squares[x][y], this, false, MoveType.Standard);
-                legalSquares.push(move);
+                legalSquares.set(squares[x][y], move);
                 x += dx;
                 y += dy;
             }
@@ -63,7 +61,7 @@ export abstract class Piece {
     }
 
     calculateMovesLimited(square: Square, directions: number[][], squares: Square[][]) {
-        const legalSquares = [];
+        const legalSquares = new Map<Square, Move>();
         for (const direction of directions) {
             const [dx, dy] = direction;
 
@@ -72,7 +70,7 @@ export abstract class Piece {
 
             if (this.isInBounds(x, y, squares) && !this.isBlocked(square, squares[x][y])) {
                 const move = new Move(square, squares[x][y], this, this.canCapture(square, squares[x][y]), MoveType.Standard);
-                legalSquares.push(move);
+                legalSquares.set(squares[x][y], move);
             }
         }
         return legalSquares;

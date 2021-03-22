@@ -32,10 +32,10 @@
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="moveIsLegal(square)" class="move-indicator"/>
-            <div v-if="board.currentPromotion && board.currentPromotion.toSquare === square" class="promotion">
+            <div v-if="waitingForPromotion(square)" class="promotion">
               <template v-for="piece in board.promotions" :key="piece">
                 <img
-                    @click="promote(board.currentPromotion.fromSquare, square, piece)"
+                    @click="promote(board.promotionInProgress, square, piece)"
                     class="promotion-piece"
                     :src="pieceImg(square.getPiece().colour, piece)"
                     :alt="piece"/>
@@ -75,12 +75,10 @@ export default {
       this.showLegalMoves(square);
       this.currentSquare = square;
     },
-    moveIsLegal(square) {
-      return this.currentSquare && this.currentSquare.getPiece() &&
-          this.currentSquare
-              .getPiece()
-              .getLegalSquares()
-              .includes(square);
+    moveIsLegal(toSquare) {
+      return this.currentSquare &&
+          this.currentSquare.getPiece() &&
+          this.currentSquare.getPiece().squareIsLegalMove(toSquare);
     },
     showLegalMoves(square) {
       this.board.calculateLegalMoves(square);
@@ -88,14 +86,15 @@ export default {
     stopMove() {
       this.currentSquare = null;
     },
-    movePiece(e, square) {
-      if (this.moveIsLegal(square)) {
-        this.board.move(this.currentSquare, square);
+    movePiece(e, toSquare) {
+      if (this.moveIsLegal(toSquare)) {
+        let move = this.currentSquare.getMove(toSquare);
+        this.board.makeMove(move);
         this.currentSquare = null;
       }
     },
     pieceIsMoveable(square) {
-      return this.board.activeColor === square.getPiece().colour && !this.board.currentPromotion;
+      return this.board.activeColor === square.getPiece().colour && !this.board.promotionInProgress;
     },
     newGame(fen = '') {
       this.board.init(fen);
@@ -103,8 +102,11 @@ export default {
     pieceImg(colour, piece) {
       return Piece.imageSrc(colour, piece);
     },
-    promote(toSquare, fromSquare, piece) {
-      this.board.promote(toSquare, fromSquare, piece);
+    waitingForPromotion(square) {
+      return this.board.promotionInProgress && this.board.promotionInProgress.toSquare === square;
+    },
+    promote(move, piece) {
+      this.board.promote(move, piece);
     }
   },
 }

@@ -34,4 +34,8 @@ export class Square {
     getPiece() {
         return this._piece;
     }
+
+    getMove(toSquare: Square) {
+        return this._piece?.legalMoves.get(toSquare);
+    }
 }

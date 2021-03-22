@@ -2,7 +2,8 @@ import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
-import {Move, MoveType} from "@/models/Move";
+import {Move} from "@/models/Move";
+import {MoveType} from "@/models/MoveType";
 
 export class Pawn extends Piece {
     readonly notation: string = 'P';
@@ -29,7 +30,7 @@ export class Pawn extends Piece {
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {
-        this.legalMoves = [];
+        this.legalMoves = new Map<Square, Move>();
 
         const squares = board.squares;
         const {rank, file} = square;
@@ -38,20 +39,20 @@ export class Pawn extends Piece {
             return;
         }
 
-        // Capturing
-        if (this.canCapture(square, squares[rank + this.dy][file + 1])) {
-            const move = new Move(square, squares[rank + this.dy][file + 1], this, true, MoveType.Standard);
-            this.legalMoves.push(move);
-        }
+        const leftAndRight = [1, -1];
 
-        if (this.canCapture(square, squares[rank + this.dy][file - 1])) {
-            const move = new Move(square, squares[rank + this.dy][file - 1], this, true, MoveType.Standard);
-            this.legalMoves.push(move);
+        // Capturing
+        for (const dx of leftAndRight) {
+            const diagonalSquare = squares[rank + this.dy][file + dx];
+            if (this.canCapture(square, diagonalSquare)) {
+                const moveType = diagonalSquare.rank == this.promotionRank ? MoveType.Promotion : MoveType.Standard;
+                const move = new Move(square, diagonalSquare, this, true, moveType);
+                this.legalMoves.set(diagonalSquare, move);
+            }
         }
 
         // En passant
-        const directions = [1, -1];
-        for (const dx of directions) {
+        for (const dx of leftAndRight) {
             const adjacentSquare = squares[rank][file + dx];
 
             if (this.canCapture(square, adjacentSquare)) {
@@ -61,24 +62,25 @@ export class Pawn extends Piece {
                         square, squares[rank + this.dy][adjacentSquare.file], this,
                         true, MoveType.EnPassant);
 
-                    this.legalMoves.push(move);
+                    this.legalMoves.set(squares[rank + this.dy][adjacentSquare.file], move);
                 }
             }
         }
 
         // Moving forward
         const forwardSquare = squares[rank + this.dy][file];
+        const moveType = forwardSquare.rank == this.promotionRank ? MoveType.Promotion : MoveType.Standard;
         if (forwardSquare.getPiece()) {
             return;
         }
 
-        const move = new Move(square, forwardSquare, this, false, MoveType.Standard);
-        this.legalMoves.push(move);
+        const move = new Move(square, forwardSquare, this, false, moveType);
+        this.legalMoves.set(forwardSquare, move);
 
         const twoForwardSquare = squares[rank + (this.dy * 2)][file];
         if (rank === this.startRank && !twoForwardSquare.getPiece()) {
             const move = new Move(square, twoForwardSquare, this, false, MoveType.Standard);
-            this.legalMoves.push(move);
+            this.legalMoves.set(twoForwardSquare, move);
         }
     }
 

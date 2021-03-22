@@ -2,6 +2,7 @@ import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Square} from "@/models/Square";
 import {Pawn} from "@/models/pieces/Pawn";
+import {MoveType} from "@/models/MoveType";
 
 // todo disambiguate after promotion??
 export class MoveHistory {
@@ -10,16 +11,8 @@ export class MoveHistory {
     constructor() {
     }
 
-    recordMove(
-        fromSquare: Square,
-        toSquare: Square,
-        piece: Piece | null,
-        capture: boolean,
-        moveType: MoveType = MoveType.Standard) {
-
-        const move = new Move(fromSquare, toSquare, piece, capture, moveType);
-
-        if (piece?.colour === PieceColour.WHITE) {
+    recordMove(move: Move) {
+        if (move.piece?.colour === PieceColour.WHITE) {
             this.moves.push(new MoveSet(move));
         } else {
             if (this.moves.length === 0) {
@@ -54,7 +47,7 @@ export class Move {
     toSquare: Square;
     piece: Piece | null;
     capture: boolean;
-    moveType: MoveType;
+    type: MoveType;
 
     constructor(
         fromSquare: Square,
@@ -66,13 +59,13 @@ export class Move {
         this.toSquare = toSquare;
         this.piece = piece;
         this.capture = capture;
-        this.moveType = moveType;
+        this.type = moveType;
     }
 
     toString() {
-        if (this.moveType === MoveType.KingSideCastle) {
+        if (this.type === MoveType.KingSideCastle) {
             return this.piece?.symbol() + ' O-O';
-        } else if (this.moveType === MoveType.QueenSideCastle) {
+        } else if (this.type === MoveType.QueenSideCastle) {
             return this.piece?.symbol() + ' O-O-O';
         }
 
@@ -85,12 +78,12 @@ export class Move {
                 move = this.fromSquare.fileLetter() + move;
             }
 
-            if (this.moveType === MoveType.EnPassant) {
+            if (this.type === MoveType.EnPassant) {
                 move = `${move} e.p.`;
             }
         }
 
-        if (this.moveType === MoveType.Promotion) {
+        if (this.type === MoveType.Promotion) {
             move = `${move}=${this.piece?.notation}`;
         } else if (!(this.piece instanceof Pawn)) {
             move = this.piece?.notation + move;
@@ -100,10 +93,3 @@ export class Move {
     }
 }
 
-export enum MoveType {
-    Standard,
-    EnPassant,
-    QueenSideCastle,
-    KingSideCastle,
-    Promotion
-}

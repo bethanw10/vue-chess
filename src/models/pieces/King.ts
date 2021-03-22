@@ -3,7 +3,8 @@ import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 import {Rook} from "@/models/pieces/Rook";
-import {Move, MoveType} from "@/models/Move";
+import {Move} from "@/models/Move";
+import {MoveType} from "@/models/MoveType";
 
 export class King extends Piece {
     readonly notation: string = 'K';
@@ -17,7 +18,7 @@ export class King extends Piece {
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {
-        this.legalMoves = [];
+        this.legalMoves = new Map<Square, Move>();
 
         const directions = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
         this.legalMoves = this.calculateMovesLimited(square, directions, board.squares);
@@ -41,7 +42,7 @@ export class King extends Piece {
                         square, board.squares[square.rank][6], this,
                         false, MoveType.KingSideCastle);
 
-                    this.legalMoves.push(move);
+                    this.legalMoves.set(board.squares[square.rank][6], move);
                 }
             }
 
@@ -56,7 +57,7 @@ export class King extends Piece {
                         square, board.squares[square.rank][2], this,
                         false, MoveType.QueenSideCastle);
 
-                    this.legalMoves.push(move);
+                    this.legalMoves.set(board.squares[square.rank][2], move);
                 }
             }
         }
