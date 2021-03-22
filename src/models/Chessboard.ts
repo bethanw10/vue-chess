@@ -6,19 +6,19 @@ import {Knight} from "@/models/pieces/Knight";
 import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/Piece-Colour";
-import {MoveHistory} from "@/models/Move";
-import {Piece} from "@/models/pieces/Piece";
+import {MoveHistory, MoveType} from "@/models/Move";
 
 export class Chessboard {
     squares: Square[][] = [];
     ranks: number = 8;
     files: number = 8;
-    moves: string[][] = [];
-    movesAlt: MoveHistory = new MoveHistory;
+    moveHistory: MoveHistory = new MoveHistory;
 
+    // todo game to fen
     fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    activeColor: PieceColour = PieceColour.WHITE
-    promotion: Square | null = null;
+    activeColor: PieceColour = PieceColour.WHITE;
+    promotions: string[] = ["queen", "knight", "bishop", "rook"];
+    promotion: any | null = null;
 
     constructor() {
         //this.fen = '4k3/8/8/8/8/8/4P3/4K3 b - - 5 39';
@@ -58,9 +58,10 @@ export class Chessboard {
         }
     }
 
-    reset() {
-        this.moves = [];
-        this.init();
+    private static isKingsideCastle(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof King &&
+            !fromSquare.getPiece()?.hasMoved &&
+            toSquare.file === 6;
     }
 
     createEmptyBoard() {
@@ -119,96 +120,64 @@ export class Chessboard {
         }
     }
 
-    // make move class?
-    // todo represent castling
-    // todo represent promotion
-    recordMove(fromSquare: Square, toSquare: Square, capturingMove: boolean) {
-        let move = toSquare.notation();
-
-        if (capturingMove) {
-            move = 'x' + move
-
-            if (fromSquare.getPiece() instanceof Pawn &&
-                fromSquare.getPiece()?.moveHistory.length != 0) {
-                move = fromSquare.fileLetter() + move;
-            }
-        }
-
-        if (!(fromSquare.getPiece() instanceof Pawn)) {
-            move = fromSquare.getPiece()?.notation + move;
-        }
-
-        move = fromSquare.getPiece()?.symbol() + ' ' + move;
-
-        fromSquare.getPiece()?.recordMove(move);
-
-        this.saveMove(move);
-    }
-
-    // make move class?
-    // todo represent castling
-    private recordPromotion(toSquare: Square, piece: Piece) {
-        let move = toSquare.notation();
-        move = `${piece.symbol()} ${move}=${piece.notation}`;
-        piece.recordMove(move);
-
-        this.saveMove(move);
-    }
-
-    private saveMove(move: string) {
-        if (this.activeColor === PieceColour.WHITE) {
-            this.moves.push([move]);
-        } else {
-            if (this.moves.length === 0) {
-                this.moves.push([]);
-            }
-
-            this.moves[this.moves.length - 1].push(move);
-        }
-    }
-
     // todo pivot to pieces recalculating legal moves after every move?
     // then show legal moves based on currentSquare
     // and unset currentSquare instead of clearLegalSquares
+
+    private static isQueensideCastle(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof King &&
+            !fromSquare.getPiece()?.hasMoved &&
+            toSquare.file === 2;
+    }
+
+    reset() {
+        this.moveHistory = new MoveHistory();
+        this.init();
+    }
+
     // todo event promotion instead of use data?
     move(fromSquare: Square, toSquare: Square) {
         let capturingMove = toSquare.getPiece() !== null;
+        let moveType = MoveType.Standard;
 
         if (this.isEnPassant(fromSquare, toSquare)) {
             this.squares[fromSquare.rank][toSquare.file].removePiece()
             capturingMove = true;
+            moveType = MoveType.EnPassant;
         }
 
         if (Chessboard.isKingsideCastle(fromSquare, toSquare)) {
             const rook = this.squares[fromSquare.rank][7].removePiece()
             this.squares[fromSquare.rank][5].setPiece(rook);
+            moveType = MoveType.KingSideCastle;
         }
 
         if (Chessboard.isQueensideCastle(fromSquare, toSquare)) {
             const rook = this.squares[fromSquare.rank][0].removePiece()
             this.squares[fromSquare.rank][3].setPiece(rook);
+            moveType = MoveType.QueenSideCastle;
         }
 
-        // Promotion
         if (Chessboard.isPromotion(fromSquare, toSquare)) {
             const piece = fromSquare.removePiece();
             toSquare.setPiece(piece);
-            this.promptPromotion(toSquare);
+            this.promptPromotion(fromSquare, toSquare);
             return;
         }
 
-        this.recordMove(fromSquare, toSquare, capturingMove);
-        this.movesAlt.recordMove(fromSquare, toSquare, capturingMove);
+        this.moveHistory.recordMove(fromSquare, toSquare, fromSquare.getPiece(), capturingMove, moveType);
 
         const piece = fromSquare.removePiece();
         toSquare.setPiece(piece);
+        piece?.setHasMoved(true);
 
-        this.activeColor = this.activeColor ===
-        PieceColour.WHITE ? PieceColour.BLACK : PieceColour.WHITE;
+        this.activeColor = this.activeColor === PieceColour.WHITE
+            ? PieceColour.BLACK
+            : PieceColour.WHITE;
     }
 
-    promote(square: Square, promotionPiece: string) {
-        const pawn = square.removePiece();
+    promote(fromSquare: Square, toSquare: Square, promotionPiece: string) {
+        const pawn = toSquare.removePiece();
 
         let piece = null;
         switch (promotionPiece) {
@@ -227,25 +196,16 @@ export class Chessboard {
                 break;
         }
 
-        square.setPiece(piece);
-        this.recordPromotion(square, piece);
+        toSquare.setPiece(piece);
 
-        this.activeColor = this.activeColor ===
-        PieceColour.WHITE ? PieceColour.BLACK : PieceColour.WHITE;
+        // todo promotion captures
+        this.moveHistory.recordMove(fromSquare, toSquare, piece, false, MoveType.Promotion);
+
+        this.activeColor = this.activeColor === PieceColour.WHITE
+            ? PieceColour.BLACK
+            : PieceColour.WHITE;
 
         this.promotion = null;
-    }
-
-    private static isKingsideCastle(fromSquare: Square, toSquare: Square) {
-        return fromSquare.getPiece() instanceof King &&
-            fromSquare.getPiece()?.moveHistory.length == 0 &&
-            toSquare.file === 6;
-    }
-
-    private static isQueensideCastle(fromSquare: Square, toSquare: Square) {
-        return fromSquare.getPiece() instanceof King &&
-            fromSquare.getPiece()?.moveHistory.length == 0 &&
-            toSquare.file === 2;
     }
 
     private static isPromotion(fromSquare: Square, toSquare: Square) {
@@ -259,7 +219,7 @@ export class Chessboard {
             this.squares[fromSquare.rank][toSquare.file].getPiece() instanceof Pawn;
     }
 
-    private promptPromotion(toSquare: Square) {
-        this.promotion = toSquare;
+    private promptPromotion(fromSquare: Square, toSquare: Square) {
+        this.promotion = {fromSquare, toSquare};
     }
 }

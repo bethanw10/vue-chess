@@ -23,7 +23,7 @@ export class King extends Piece {
         // todo cannot castle when squares are under check
 
         // Castling
-        if (this.moveHistory.length === 0) {
+        if (!this.hasMoved) {
 
             // Kingside
             if (board.squares[square.rank][5].getPiece() == null &&
@@ -31,7 +31,7 @@ export class King extends Piece {
                 const rookSquarePiece = board.squares[square.rank][7].getPiece();
 
                 if (rookSquarePiece instanceof Rook &&
-                    rookSquarePiece?.moveHistory.length == 0) {
+                    !rookSquarePiece?.hasMoved) {
                     board.squares[square.rank][6].isLegal = true;
                 }
             }
@@ -44,7 +44,7 @@ export class King extends Piece {
                 const rookSquarePiece = board.squares[square.rank][0].getPiece();
 
                 if (rookSquarePiece instanceof Rook &&
-                    rookSquarePiece?.moveHistory.length == 0) {
+                    !rookSquarePiece?.hasMoved) {
                     board.squares[square.rank][2].isLegal = true;
                 }
             }

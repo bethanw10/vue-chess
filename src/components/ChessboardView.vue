@@ -1,13 +1,17 @@
 <template>
   <div class="board-container">
     <div class="sidebar">
-      <button type="button" class="btn btn-primary" @click="newGame()">New Game</button>
+      <button type="button" @click="newGame()">New Game</button>
+      <label> FEN
+        <input :mode="fen" type="text"/>
+        <button type="button" @click="newGame()">New Game from FEN</button>
+      </label>
       <p><b>FEN</b>: {{ board.fen }}</p>
       <div class="moves">
-        <template v-for="(moveSet, i) in board.moves" :key="i">
+        <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
           <span>{{ i + 1 }}.</span>
-          <span><b>{{ moveSet[0] }}</b></span>
-          <span><b>{{ moveSet[1] }}</b></span>
+          <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b></span> <span v-else></span>
+          <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span> <span v-else></span>
         </template>
       </div>
     </div>
@@ -29,10 +33,10 @@
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="square.isLegal" class="move-indicator"/>
-            <div v-if="board.promotion && board.promotion === square" class="promotion">
-              <template :key="piece" v-for="piece in promotions">
+            <div v-if="board.promotion && board.promotion.toSquare === square" class="promotion">
+              <template v-for="piece in board.promotions" :key="piece">
                 <img
-                    @click="promote(square, piece)"
+                    @click="promote(board.promotion.fromSquare, square, piece)"
                     class="promotion-piece"
                     :src="pieceImg(square.getPiece().colour, piece)"
                     :alt="piece"/>
@@ -57,7 +61,7 @@ export default {
       ranks: 8,
       files: 8,
       currentSquare: null,
-      promotions: ["queen", "knight", "bishop", "rook"]
+      fen: ''
     }
   },
   created() {
@@ -100,8 +104,8 @@ export default {
     pieceImg(colour, piece) {
       return Piece.imageSrc(colour, piece);
     },
-    promote(square, piece) {
-      this.board.promote(square, piece);
+    promote(toSquare, fromSquare, piece) {
+      this.board.promote(toSquare, fromSquare, piece);
     }
   },
 }
