@@ -31,9 +31,6 @@ export class Pawn extends Piece {
             return;
         }
 
-        // todo en passant only straight after
-        // todo promotion
-
         // Capturing
         if (this.canCapture(square, squares[rank + dy][file + 1])) {
             squares[rank + dy][file + 1].isLegal = true;
@@ -49,7 +46,7 @@ export class Pawn extends Piece {
         for (const dx of directions) {
             if (this.canCapture(square, squares[rank][file + dx])) {
                 const piece = squares[rank][file + dx].getPiece();
-                if (piece?.moveHistory.length == 1 && this.pieceMovedLast(piece, board)) {
+                if (this.lastMoveWasPawnTwoStep(piece, board)) {
                     squares[rank + dy][file + dx].isLegal = true;
                 }
             }
@@ -67,15 +64,10 @@ export class Pawn extends Piece {
         }
     }
 
-    pieceMovedLast(piece: Piece, board: Chessboard): boolean {
-        const lastPieceMove = piece.moveHistory[piece.moveHistory.length - 1];
-        let lastMove = board.moves[board.moves.length - 1][1];
-
-        if (!lastMove) {
-            lastMove = board.moves[board.moves.length - 1][0];
-        }
-
-        return lastPieceMove === lastMove
+    lastMoveWasPawnTwoStep(piece: Piece | null, board: Chessboard): boolean {
+        const lastMove = board.moveHistory.lastMove();
+        const isTwoSquareAdvance = Math.abs(lastMove.fromSquare.rank - lastMove.toSquare.rank) == 2;
+        return piece instanceof Pawn && piece === lastMove?.piece && isTwoSquareAdvance;
     }
 }
 
