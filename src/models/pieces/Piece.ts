@@ -1,11 +1,16 @@
 import {Square} from "@/models/Square";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
+import {Move, MoveType} from "@/models/Move";
 
 export abstract class Piece {
     abstract readonly notation: string;
     colour: PieceColour;
     hasMoved: boolean = false;
+
+    // Dictionary square to move?
+    // Separate properties?
+    legalMoves: Move[] = []
 
     protected constructor(colour: PieceColour) {
         this.colour = colour;
@@ -25,8 +30,13 @@ export abstract class Piece {
         this.hasMoved = hasMoved;
     }
 
+    getLegalSquares() {
+        return this.legalMoves.map(m => m.toSquare);
+    }
+
     calculateMovesUnlimited(square: Square, directions: number[][], squares: Square[][]) {
-        let dx, dy
+        let dx, dy;
+        const legalSquares = [];
         for (const direction of directions) {
             [dx, dy] = direction;
 
@@ -36,20 +46,24 @@ export abstract class Piece {
             while (this.isInBounds(x, y, squares)) {
                 if (squares[x][y].getPiece()) {
                     if (this.canCapture(square, squares[x][y])) {
-                        squares[x][y].isLegal = true;
+                        const move = new Move(square, squares[x][y], this, true, MoveType.Standard);
+                        legalSquares.push(move);
                     }
 
                     break;
                 }
 
-                squares[x][y].isLegal = true;
+                const move = new Move(square, squares[x][y], this, false, MoveType.Standard);
+                legalSquares.push(move);
                 x += dx;
                 y += dy;
             }
         }
+        return legalSquares;
     }
 
     calculateMovesLimited(square: Square, directions: number[][], squares: Square[][]) {
+        const legalSquares = [];
         for (const direction of directions) {
             const [dx, dy] = direction;
 
@@ -57,9 +71,11 @@ export abstract class Piece {
             const y = square.file + dy;
 
             if (this.isInBounds(x, y, squares) && !this.isBlocked(square, squares[x][y])) {
-                squares[x][y].isLegal = true;
+                const move = new Move(square, squares[x][y], this, this.canCapture(square, squares[x][y]), MoveType.Standard);
+                legalSquares.push(move);
             }
         }
+        return legalSquares;
     }
 
     protected isInBounds(rank: number, file: number, squares: Square[][]) {
@@ -67,9 +83,9 @@ export abstract class Piece {
             file >= 0 && file < squares.length;
     }
 
-    protected canCapture(capturingSquare: Square, targetSquare: Square) {
-        return targetSquare &&
-            targetSquare.getPiece()?.colour &&
+    protected canCapture(capturingSquare: Square, targetSquare: Square): boolean {
+        return !!targetSquare &&
+            !!targetSquare.getPiece()?.colour &&
             capturingSquare.getPiece()?.colour !== targetSquare.getPiece()?.colour;
     }
 

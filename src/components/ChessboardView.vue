@@ -21,7 +21,6 @@
               :id="square.notation()"
               :file="square.file" :rank="square.rank"
               :class="['square', squareColour(i, j)]"
-              @drag:stop="clearLegalMoves()"
               @dragover="allowDrop($event)"
               @drop="movePiece($event, square)">
             <img
@@ -29,9 +28,10 @@
                 :class="[{'moveable' : pieceIsMoveable(square)}, 'piece']"
                 :draggable="pieceIsMoveable(square)"
                 @dragstart="dragStart(square)"
+                @dragend="stopMove()"
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
-            <div v-if="square.isLegal" class="move-indicator"/>
+            <div v-if="moveIsLegal(square)" class="move-indicator"/>
             <div v-if="board.currentPromotion && board.currentPromotion.toSquare === square" class="promotion">
               <template v-for="piece in board.promotions" :key="piece">
                 <img
@@ -75,21 +75,28 @@ export default {
       this.showLegalMoves(square);
       this.currentSquare = square;
     },
+    moveIsLegal(square) {
+      return this.currentSquare &&
+          this.currentSquare.getPiece() &&
+          this.currentSquare
+              .getPiece()
+              .getLegalSquares()
+              .includes(square);
+    },
     showLegalMoves(square) {
       if (square.getPiece().colour !== this.board.activeColor) {
         return;
       }
 
-      this.board.clearLegalMoves();
       this.board.calculateLegalMoves(square);
     },
-    clearLegalMoves() {
-      this.board.clearLegalMoves();
+    stopMove() {
+      this.currentSquare = null;
     },
     movePiece(e, square) {
-      if (square.isLegal) {
+      if (this.moveIsLegal(square)) {
         this.board.move(this.currentSquare, square);
-        this.clearLegalMoves()
+        this.currentSquare = null;
       }
     },
     pieceIsMoveable(square) {

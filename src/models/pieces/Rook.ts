@@ -16,7 +16,7 @@ export class Rook extends Piece {
 
     calculateLegalMoves(square: Square, board: Chessboard) {
         const directions = [[0, 1], [1, 0], [-1, 0], [0, -1]];
-        this.calculateMovesUnlimited(square, directions, board.squares)
+        this.legalMoves = this.calculateMovesUnlimited(square, directions, board.squares)
     }
 
     symbol(): string {

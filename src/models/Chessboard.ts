@@ -109,14 +109,6 @@ export class Chessboard {
         square.getPiece()?.calculateLegalMoves(square, this);
     }
 
-    clearLegalMoves() {
-        for (const file of this.squares) {
-            for (const square of file) {
-                square.isLegal = false;
-            }
-        }
-    }
-
     // todo pivot to pieces recalculating legal moves after every move?
     // then show legal moves based on currentSquare
     // and unset currentSquare instead of clearLegalSquares
@@ -159,10 +151,10 @@ export class Chessboard {
             : PieceColour.WHITE;
     }
 
-    promote(fromSquare: Square, toSquare: Square, promotionPiece: string) {
+    promote(fromSquare: Square, toSquare: Square, promotionPieceName: string) {
         const pawn = toSquare.removePiece();
 
-        const piece = Chessboard.nameToPiece(promotionPiece, <PieceColour>pawn?.colour)
+        const piece = Chessboard.nameToPiece(promotionPieceName, <PieceColour>pawn?.colour)
 
         toSquare.setPiece(piece);
 

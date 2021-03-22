@@ -16,7 +16,7 @@ export class Knight extends Piece {
 
     calculateLegalMoves(square: Square, board: Chessboard) {
         const directions = [[2, 1], [2, -1], [1, 2], [-1, 2], [-2, 1], [-2, -1], [1, -2], [-1, -2]];
-        this.calculateMovesLimited(square, directions, board.squares);
+        this.legalMoves = this.calculateMovesLimited(square, directions, board.squares);
     }
 
     symbol(): string {

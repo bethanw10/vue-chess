@@ -3,7 +3,6 @@ import {Piece} from "@/models/pieces/Piece";
 export class Square {
     LOWERCASE_CHAR_OFFSET = 97;
 
-    isLegal = false;
     rank: number;
     file: number;
     _piece: Piece | null;

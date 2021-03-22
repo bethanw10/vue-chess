@@ -2,12 +2,22 @@ import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
+import {Move, MoveType} from "@/models/Move";
 
 export class Pawn extends Piece {
     readonly notation: string = 'P';
 
+    dy: number;
+    startRank: number;
+    promotionRank: number;
+
     constructor(colour: PieceColour) {
         super(colour);
+
+        // White pawns move up the board and black pawns move down
+        this.dy = this.colour == PieceColour.WHITE ? 1 : -1;
+        this.startRank = this.colour == PieceColour.WHITE ? 1 : 6;
+        this.promotionRank = this.colour == PieceColour.WHITE ? 7 : 0;
     }
 
     imageSrc(): string {
@@ -19,52 +29,60 @@ export class Pawn extends Piece {
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {
+        this.legalMoves = [];
+
         const squares = board.squares;
         const {rank, file} = square;
 
-        // White pawns move up the board and black pawns move down
-        const dy = this.colour == PieceColour.WHITE ? 1 : -1;
-        const startRank = this.colour == PieceColour.WHITE ? 1 : 6;
-        const promotionRank = this.colour == PieceColour.WHITE ? 7 : 0;
-
-        if (rank === promotionRank) {
+        if (rank === this.promotionRank) {
             return;
         }
 
         // Capturing
-        if (this.canCapture(square, squares[rank + dy][file + 1])) {
-            squares[rank + dy][file + 1].isLegal = true;
+        if (this.canCapture(square, squares[rank + this.dy][file + 1])) {
+            const move = new Move(square, squares[rank + this.dy][file + 1], this, true, MoveType.Standard);
+            this.legalMoves.push(move);
         }
 
-        if (this.canCapture(square, squares[rank + dy][file - 1])) {
-            squares[rank + dy][file - 1].isLegal = true;
+        if (this.canCapture(square, squares[rank + this.dy][file - 1])) {
+            const move = new Move(square, squares[rank + this.dy][file - 1], this, true, MoveType.Standard);
+            this.legalMoves.push(move);
         }
 
         // En passant
         const directions = [1, -1];
-
         for (const dx of directions) {
-            if (this.canCapture(square, squares[rank][file + dx])) {
-                const piece = squares[rank][file + dx].getPiece();
-                if (this.lastMoveWasPawnTwoStep(piece, board)) {
-                    squares[rank + dy][file + dx].isLegal = true;
+            const adjacentSquare = squares[rank][file + dx];
+
+            if (this.canCapture(square, adjacentSquare)) {
+                const piece = adjacentSquare.getPiece();
+                if (Pawn.lastMoveWasDoubleStep(piece, board)) {
+                    const move = new Move(
+                        square, squares[rank + this.dy][adjacentSquare.file], this,
+                        true, MoveType.EnPassant);
+
+                    this.legalMoves.push(move);
                 }
             }
         }
 
         // Moving forward
-        if (squares[rank + dy][file].getPiece()) {
+        const forwardSquare = squares[rank + this.dy][file];
+        if (forwardSquare.getPiece()) {
             return;
         }
 
-        squares[rank + dy][file].isLegal = true;
+        const move = new Move(square, forwardSquare, this, false, MoveType.Standard);
+        this.legalMoves.push(move);
 
-        if (rank === startRank && !squares[rank + (dy * 2)][file].getPiece()) {
-            squares[rank + (dy * 2)][file].isLegal = true;
+        const twoForwardSquare = squares[rank + (this.dy * 2)][file];
+        if (rank === this.startRank && !twoForwardSquare.getPiece()) {
+            const move = new Move(square, twoForwardSquare, this, false, MoveType.Standard);
+            this.legalMoves.push(move);
         }
     }
 
-    lastMoveWasPawnTwoStep(piece: Piece | null, board: Chessboard): boolean {
+    private static lastMoveWasDoubleStep(piece: Piece | null, board: Chessboard): boolean {
         const lastMove = board.moveHistory.lastMove();
         const isTwoSquareAdvance = Math.abs(lastMove.fromSquare.rank - lastMove.toSquare.rank) == 2;
         return piece instanceof Pawn && piece === lastMove?.piece && isTwoSquareAdvance;
