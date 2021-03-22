@@ -3,10 +3,9 @@
     <div class="sidebar">
       <button type="button" @click="newGame()">New Game</button>
       <label> FEN
-        <input :mode="fen" type="text"/>
-        <button type="button" @click="newGame()">New Game from FEN</button>
+        <input v-model="fen" type="text"/>
+        <button type="button" @click="newGame(fen)">New Game from FEN</button>
       </label>
-      <p><b>FEN</b>: {{ board.fen }}</p>
       <div class="moves">
         <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
           <span>{{ i + 1 }}.</span>
@@ -33,10 +32,10 @@
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="square.isLegal" class="move-indicator"/>
-            <div v-if="board.promotion && board.promotion.toSquare === square" class="promotion">
+            <div v-if="board.currentPromotion && board.currentPromotion.toSquare === square" class="promotion">
               <template v-for="piece in board.promotions" :key="piece">
                 <img
-                    @click="promote(board.promotion.fromSquare, square, piece)"
+                    @click="promote(board.currentPromotion.fromSquare, square, piece)"
                     class="promotion-piece"
                     :src="pieceImg(square.getPiece().colour, piece)"
                     :alt="piece"/>
@@ -58,8 +57,6 @@ export default {
   data() {
     return {
       board: null,
-      ranks: 8,
-      files: 8,
       currentSquare: null,
       fen: ''
     }
@@ -96,10 +93,10 @@ export default {
       }
     },
     pieceIsMoveable(square) {
-      return this.board.activeColor === square.getPiece().colour && !this.board.promotion;
+      return this.board.activeColor === square.getPiece().colour && !this.board.currentPromotion;
     },
-    newGame() {
-      this.board.reset();
+    newGame(fen = '') {
+      this.board.init(fen);
     },
     pieceImg(colour, piece) {
       return Piece.imageSrc(colour, piece);
@@ -127,6 +124,7 @@ export default {
   align-items: center;
   display: flex;
   flex-direction: column;
+  padding: 50px;
 }
 
 .moves {

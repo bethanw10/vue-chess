@@ -1,5 +1,5 @@
 import {Piece} from "@/models/pieces/Piece";
-import {PieceColour} from "@/models/Piece-Colour";
+import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Square} from "@/models/Square";
 import {Pawn} from "@/models/pieces/Pawn";
 
@@ -16,9 +16,10 @@ export class MoveHistory {
         piece: Piece | null,
         capture: boolean,
         moveType: MoveType = MoveType.Standard) {
+
         const move = new Move(fromSquare, toSquare, piece, capture, moveType);
 
-        if (fromSquare.getPiece()?.colour === PieceColour.WHITE) {
+        if (piece?.colour === PieceColour.WHITE) {
             this.moves.push(new MoveSet(move));
         } else {
             if (this.moves.length === 0) {

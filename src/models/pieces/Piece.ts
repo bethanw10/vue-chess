@@ -1,5 +1,5 @@
 import {Square} from "@/models/Square";
-import {PieceColour} from "@/models/Piece-Colour";
+import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 
 export abstract class Piece {

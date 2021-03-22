@@ -5,33 +5,36 @@ import {Bishop} from "@/models/pieces/Bishop";
 import {Knight} from "@/models/pieces/Knight";
 import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
-import {PieceColour} from "@/models/Piece-Colour";
+import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {MoveHistory, MoveType} from "@/models/Move";
 
 export class Chessboard {
-    squares: Square[][] = [];
-    ranks: number = 8;
-    files: number = 8;
-    moveHistory: MoveHistory = new MoveHistory;
+    readonly RANKS: number = 8;
+    readonly FILES: number = 8;
+    readonly DEFAULT_FEN: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-    // todo game to fen
-    fen: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    fen: string = '';
+    squares: Square[][] = [];
+    moveHistory: MoveHistory = new MoveHistory;
     activeColor: PieceColour = PieceColour.WHITE;
     promotions: string[] = ["queen", "knight", "bishop", "rook"];
-    promotion: any | null = null;
+    currentPromotion: any | null = null;
 
     constructor() {
-        //this.fen = '4k3/8/8/8/8/8/4P3/4K3 b - - 5 39';
-
         this.init();
     }
 
-    init() {
+    init(fen: string = '') {
+        this.moveHistory = new MoveHistory();
+        this.fen = fen ? fen : this.DEFAULT_FEN;
+
         this.squares = this.createEmptyBoard();
 
         const data = this.fen.split(' ');
         const rows = data[0].split('/');
         const active = data[1];
+        const castling = data[2];
+
         this.activeColor = active === 'w' ? PieceColour.WHITE : PieceColour.BLACK;
 
         let rank = 0;
@@ -58,19 +61,13 @@ export class Chessboard {
         }
     }
 
-    private static isKingsideCastle(fromSquare: Square, toSquare: Square) {
-        return fromSquare.getPiece() instanceof King &&
-            !fromSquare.getPiece()?.hasMoved &&
-            toSquare.file === 6;
-    }
-
     createEmptyBoard() {
         const arr: Square[][] = [];
-        for (let file = 0; file < this.files; file++) {
+        for (let file = 0; file < this.FILES; file++) {
             if (!arr[file]) {
                 arr[file] = [];
             }
-            for (let rank = 0; rank < this.ranks; rank++) {
+            for (let rank = 0; rank < this.RANKS; rank++) {
                 arr[file][rank] = new Square(file, rank);
             }
         }
@@ -123,18 +120,6 @@ export class Chessboard {
     // todo pivot to pieces recalculating legal moves after every move?
     // then show legal moves based on currentSquare
     // and unset currentSquare instead of clearLegalSquares
-
-    private static isQueensideCastle(fromSquare: Square, toSquare: Square) {
-        return fromSquare.getPiece() instanceof King &&
-            !fromSquare.getPiece()?.hasMoved &&
-            toSquare.file === 2;
-    }
-
-    reset() {
-        this.moveHistory = new MoveHistory();
-        this.init();
-    }
-
     // todo event promotion instead of use data?
     move(fromSquare: Square, toSquare: Square) {
         let capturingMove = toSquare.getPiece() !== null;
@@ -158,18 +143,16 @@ export class Chessboard {
             moveType = MoveType.QueenSideCastle;
         }
 
-        if (Chessboard.isPromotion(fromSquare, toSquare)) {
-            const piece = fromSquare.removePiece();
-            toSquare.setPiece(piece);
+        const piece = fromSquare.removePiece();
+        toSquare.setPiece(piece);
+        piece?.setHasMoved(true);
+
+        if (Chessboard.isPromotion(toSquare)) {
             this.promptPromotion(fromSquare, toSquare);
             return;
         }
 
-        this.moveHistory.recordMove(fromSquare, toSquare, fromSquare.getPiece(), capturingMove, moveType);
-
-        const piece = fromSquare.removePiece();
-        toSquare.setPiece(piece);
-        piece?.setHasMoved(true);
+        this.moveHistory.recordMove(fromSquare, toSquare, toSquare.getPiece(), capturingMove, moveType);
 
         this.activeColor = this.activeColor === PieceColour.WHITE
             ? PieceColour.BLACK
@@ -179,22 +162,7 @@ export class Chessboard {
     promote(fromSquare: Square, toSquare: Square, promotionPiece: string) {
         const pawn = toSquare.removePiece();
 
-        let piece = null;
-        switch (promotionPiece) {
-            default:
-            case "queen":
-                piece = new Queen(<PieceColour>pawn?.colour);
-                break;
-            case "rook":
-                piece = new Rook(<PieceColour>pawn?.colour);
-                break;
-            case "bishop":
-                piece = new Bishop(<PieceColour>pawn?.colour);
-                break;
-            case "knight":
-                piece = new Knight(<PieceColour>pawn?.colour);
-                break;
-        }
+        const piece = Chessboard.nameToPiece(promotionPiece, <PieceColour>pawn?.colour)
 
         toSquare.setPiece(piece);
 
@@ -205,11 +173,37 @@ export class Chessboard {
             ? PieceColour.BLACK
             : PieceColour.WHITE;
 
-        this.promotion = null;
+        this.currentPromotion = null;
     }
 
-    private static isPromotion(fromSquare: Square, toSquare: Square) {
-        return fromSquare.getPiece() instanceof Pawn &&
+    private static nameToPiece(name: string, color: PieceColour) {
+        switch (name) {
+            default:
+            case "queen":
+                return new Queen(color);
+            case "rook":
+                return new Rook(color);
+            case "bishop":
+                return new Bishop(color);
+            case "knight":
+                return new Knight(color);
+        }
+    }
+
+    private static isKingsideCastle(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof King &&
+            !fromSquare.getPiece()?.hasMoved &&
+            toSquare.file === 6;
+    }
+
+    private static isQueensideCastle(fromSquare: Square, toSquare: Square) {
+        return fromSquare.getPiece() instanceof King &&
+            !fromSquare.getPiece()?.hasMoved &&
+            toSquare.file === 2;
+    }
+
+    private static isPromotion(toSquare: Square) {
+        return toSquare.getPiece() instanceof Pawn &&
             (toSquare.rank === 0 || toSquare.rank === 7);
     }
 
@@ -220,6 +214,6 @@ export class Chessboard {
     }
 
     private promptPromotion(fromSquare: Square, toSquare: Square) {
-        this.promotion = {fromSquare, toSquare};
+        this.currentPromotion = {fromSquare, toSquare};
     }
 }

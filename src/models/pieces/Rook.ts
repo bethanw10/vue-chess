@@ -1,6 +1,6 @@
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
-import {PieceColour} from "@/models/Piece-Colour";
+import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 
 export class Rook extends Piece {
