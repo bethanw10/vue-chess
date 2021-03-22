@@ -76,18 +76,13 @@ export default {
       this.currentSquare = square;
     },
     moveIsLegal(square) {
-      return this.currentSquare &&
-          this.currentSquare.getPiece() &&
+      return this.currentSquare && this.currentSquare.getPiece() &&
           this.currentSquare
               .getPiece()
               .getLegalSquares()
               .includes(square);
     },
     showLegalMoves(square) {
-      if (square.getPiece().colour !== this.board.activeColor) {
-        return;
-      }
-
       this.board.calculateLegalMoves(square);
     },
     stopMove() {

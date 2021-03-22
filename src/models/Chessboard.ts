@@ -8,6 +8,7 @@ import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {MoveHistory, MoveType} from "@/models/Move";
 
+// todo mobile?
 export class Chessboard {
     readonly RANKS: number = 8;
     readonly FILES: number = 8;
