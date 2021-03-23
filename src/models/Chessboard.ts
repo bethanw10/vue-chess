@@ -145,10 +145,11 @@ export class Chessboard {
 
     promote(move: Move, promotionPieceName: string) {
         const pawn = move.toSquare.removePiece();
-        const piece = Chessboard.nameToPiece(promotionPieceName, <PieceColour>pawn?.colour)
+        const promotedPiece = Chessboard.nameToPiece(promotionPieceName, <PieceColour>pawn?.colour)
 
-        move.toSquare.setPiece(piece);
+        move.toSquare.setPiece(promotedPiece);
 
+        move.piece = promotedPiece;
         this.moveHistory.recordMove(move);
 
         this.promotionInProgress = null;
