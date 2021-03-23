@@ -77,10 +77,12 @@ export class Pawn extends Piece {
         const move = new Move(square, forwardSquare, this, false, moveType);
         this.legalMoves.set(forwardSquare, move);
 
-        const twoForwardSquare = squares[rank + (this.dy * 2)][file];
-        if (rank === this.startRank && !twoForwardSquare.getPiece()) {
-            const move = new Move(square, twoForwardSquare, this, false, MoveType.Standard);
-            this.legalMoves.set(twoForwardSquare, move);
+        if (rank !== this.promotionRank + this.dy) {
+            const twoForwardSquare = squares[rank + (this.dy * 2)][file];
+            if (rank === this.startRank && !twoForwardSquare.getPiece()) {
+                const move = new Move(square, twoForwardSquare, this, false, MoveType.Standard);
+                this.legalMoves.set(twoForwardSquare, move);
+            }
         }
     }
 

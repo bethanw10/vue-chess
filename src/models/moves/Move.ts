@@ -24,10 +24,11 @@ export class Move {
     }
 
     toString() {
-        if (this.type === MoveType.KingSideCastle) {
-            return this.piece?.symbol() + ' O-O';
-        } else if (this.type === MoveType.QueenSideCastle) {
-            return this.piece?.symbol() + ' O-O-O';
+        switch (this.type) {
+            case MoveType.KingSideCastle:
+                return this.piece?.symbol() + ' O-O';
+            case MoveType.QueenSideCastle:
+                return this.piece?.symbol() + ' O-O-O';
         }
 
         let move = this.toSquare.notation();

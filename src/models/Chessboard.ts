@@ -138,15 +138,14 @@ export class Chessboard {
 
         this.moveHistory.recordMove(move);
 
-        this.activeColor = this.activeColor === PieceColour.WHITE
-            ? PieceColour.BLACK
-            : PieceColour.WHITE;
+        this.nextTurn();
+
+        // if king has no legal moves but is not in check, stalemate
     }
 
     promote(move: Move, promotionPieceName: string) {
         const pawn = move.toSquare.removePiece();
         const promotedPiece = Chessboard.nameToPiece(promotionPieceName, <PieceColour>pawn?.colour)
-
         move.toSquare.setPiece(promotedPiece);
 
         move.piece = promotedPiece;
@@ -154,14 +153,17 @@ export class Chessboard {
 
         this.promotionInProgress = null;
 
+        this.nextTurn()
+    }
+
+    nextTurn() {
         this.activeColor = this.activeColor === PieceColour.WHITE
             ? PieceColour.BLACK
-            : PieceColour.WHITE;
+            : PieceColour.WHITE
     }
 
     private static nameToPiece(name: string, color: PieceColour) {
         switch (name) {
-            default:
             case "queen":
                 return new Queen(color);
             case "rook":
@@ -170,6 +172,8 @@ export class Chessboard {
                 return new Bishop(color);
             case "knight":
                 return new Knight(color);
+            default:
+                throw new Error('Unrecognised piece name ' + name)
         }
     }
 }

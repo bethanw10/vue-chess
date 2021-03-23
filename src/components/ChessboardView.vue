@@ -33,12 +33,12 @@
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="moveIsLegal(square)" class="move-indicator"/>
             <div v-if="waitingForPromotion(square)" class="promotion">
-              <template v-for="piece in board.promotions" :key="piece">
+              <template v-for="promotionPiece in board.promotions" :key="promotionPiece">
                 <img
-                    @click="promote(board.promotionInProgress, square, piece)"
+                    @click="promote(board.promotionInProgress, promotionPiece)"
                     class="promotion-piece"
-                    :src="pieceImg(square.getPiece().colour, piece)"
-                    :alt="piece"/>
+                    :src="pieceImg(square.getPiece().colour, promotionPiece)"
+                    :alt="promotionPiece"/>
               </template>
             </div>
           </div>
