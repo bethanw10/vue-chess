@@ -7,27 +7,37 @@ import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Move} from "@/models/moves/Move";
-import {MoveType} from "@/models/MoveType";
+import {MoveType} from "@/models/moves/MoveType";
 import {MoveHistory} from "@/models/moves/MoveHistory";
+import {GameResult} from "@/models/GameResult";
 
 // todo mobile?
 export class Chessboard {
     readonly RANKS: number = 8;
     readonly FILES: number = 8;
     readonly DEFAULT_FEN: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    readonly PROMOTIONS: string[] = ["queen", "knight", "bishop", "rook"];
 
     fen: string = '';
     squares: Square[][] = [];
     moveHistory: MoveHistory = new MoveHistory;
     activeColor: PieceColour = PieceColour.WHITE;
-    promotions: string[] = ["queen", "knight", "bishop", "rook"];
     promotionInProgress: Move | null = null;
+
+    gameState: GameResult = GameResult.InProgress;
 
     constructor() {
         this.init();
     }
 
     init(fen: string = '') {
+        this.loadFen(fen);
+        this.gameState = GameResult.InProgress;
+        this.calculateMovesForColor(PieceColour.BLACK);
+        this.calculateMovesForColor(PieceColour.WHITE);
+    }
+
+    loadFen(fen: string) {
         this.moveHistory = new MoveHistory();
         this.fen = fen ? fen : this.DEFAULT_FEN;
 
@@ -36,9 +46,7 @@ export class Chessboard {
         const data = this.fen.split(' ');
         const rows = data[0].split('/');
         const active = data[1];
-
         // todo castling, en passant, halftime, full time clock
-        const castling = data[2];
 
         this.activeColor = active === 'w' ? PieceColour.WHITE : PieceColour.BLACK;
 
@@ -102,36 +110,22 @@ export class Chessboard {
 
     private isLetter = (string: string) => /[a-zA-Z]/.test(string);
 
-    calculateLegalMoves(square: Square) {
-        square.getPiece()?.calculateLegalMoves(square, this);
-    }
+    calculateMovesForColor(color: PieceColour) {
+        for (const square of this.squaresIterator(this.squares)) {
+            const piece = square.getPiece();
 
-    // todo pivot to pieces recalculating legal moves after every move?
-    // todo event promotion instead of use data?
-    // todo detect win, draw
-    makeMove(move: Move) {
-        // todo include captured piece in move info??
-        switch (move.type) {
-            case MoveType.EnPassant:
-                this.squares[move.fromSquare.rank][move.toSquare.file].removePiece();
-                break;
-            case MoveType.KingSideCastle: {
-                const rook = this.squares[move.fromSquare.rank][7].removePiece()
-                this.squares[move.fromSquare.rank][5].setPiece(rook);
-                break;
-            }
-            case MoveType.QueenSideCastle: {
-                const rook = this.squares[move.fromSquare.rank][0].removePiece()
-                this.squares[move.fromSquare.rank][3].setPiece(rook);
-                break;
+            if (piece && piece.colour === color) {
+                piece.updateLegalMoves(square, this);
             }
         }
+    }
 
-        const piece = move.fromSquare.removePiece();
-        move.toSquare.setPiece(piece);
-        piece?.setHasMoved(true);
+    // todo detect win, draw
+    makeMove(move: Move) {
+        this.movePiece(this.squares, move);
+        move.piece?.setHasMoved(true);
 
-        if (move.type == MoveType.Promotion) {
+        if (move.type === MoveType.Promotion) {
             this.promotionInProgress = move;
             return;
         }
@@ -140,7 +134,60 @@ export class Chessboard {
 
         this.nextTurn();
 
+        this.calculateMovesForColor(this.activeColor);
+
         // if king has no legal moves but is not in check, stalemate
+        // if king has no legal moves but is in check, checkmate
+        const kingSquare = this.kingIsInCheck(this.squares, this.activeColor);
+        if (kingSquare) {
+            console.log("King is in check!!");
+            if (kingSquare.getPiece()?.legalMoves.size === 0) {
+                if (this.activeColor === PieceColour.WHITE) {
+                    this.gameState = GameResult.BlackWin;
+                } else {
+                    this.gameState = GameResult.WhiteWin;
+                }
+            }
+        }
+    }
+
+    movePiece(squares: Square[][], move: Move) {
+        switch (move.type) {
+            case MoveType.EnPassant:
+                squares[move.fromSquare.rank][move.toSquare.file].removePiece();
+                break;
+
+            case MoveType.KingSideCastle: {
+                const rook = squares[move.fromSquare.rank][7].removePiece()
+                squares[move.fromSquare.rank][5].setPiece(rook);
+                break;
+            }
+            case MoveType.QueenSideCastle: {
+                const rook = squares[move.fromSquare.rank][0].removePiece()
+                squares[move.fromSquare.rank][3].setPiece(rook);
+                break;
+            }
+        }
+
+        const piece = squares[move.fromSquare.rank][move.fromSquare.file].removePiece();
+        squares[move.toSquare.rank][move.toSquare.file].setPiece(piece);
+    }
+
+    kingIsInCheck(squares: Square[][], color: PieceColour) {
+        for (const square of this.squaresIterator(squares)) {
+            const piece = square.getPiece();
+            if (piece && piece?.colour != color) {
+                const moves = piece.calculateLegalMoves(square, this);
+
+                for (const [, move] of moves) {
+                    if (move.capture && move.toSquare.getPiece() instanceof King) {
+                        return move.toSquare;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     promote(move: Move, promotionPieceName: string) {
@@ -160,6 +207,14 @@ export class Chessboard {
         this.activeColor = this.activeColor === PieceColour.WHITE
             ? PieceColour.BLACK
             : PieceColour.WHITE
+    }
+
+    * squaresIterator(squares: Square[][]) {
+        for (const file of squares) {
+            for (const square of file) {
+                yield square;
+            }
+        }
     }
 
     private static nameToPiece(name: string, color: PieceColour) {

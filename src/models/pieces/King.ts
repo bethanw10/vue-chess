@@ -4,7 +4,7 @@ import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 import {Rook} from "@/models/pieces/Rook";
 import {Move} from "@/models/moves/Move";
-import {MoveType} from "@/models/MoveType";
+import {MoveType} from "@/models/moves/MoveType";
 
 export class King extends Piece {
     readonly notation: string = 'K';
@@ -18,49 +18,56 @@ export class King extends Piece {
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {
-        this.legalMoves = new Map<Square, Move>();
-
         const directions = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
-        this.legalMoves = this.calculateMovesLimited(square, directions, board.squares);
+        const legalMoves = this.calculateMovesLimited(square, directions, board.squares);
 
         // todo check
-        for (const square of this.legalMoves) {
+        for (const square of legalMoves) {
             //
         }
 
         // todo cannot castle when squares are under check
 
         // Castling
-        if (!this.hasMoved) {
-            // Kingside
-            if (board.squares[square.rank][5].getPiece() == null &&
-                board.squares[square.rank][6].getPiece() == null) {
-                const rookSquarePiece = board.squares[square.rank][7].getPiece();
+        if (this.hasMoved) {
+            return legalMoves;
+        }
 
-                if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
-                    const move = new Move(
-                        square, board.squares[square.rank][6], this,
-                        false, MoveType.KingSideCastle);
+        if (King.kingsideIsClear(board.squares, square)) {
+            const rookSquarePiece = board.squares[square.rank][7].getPiece();
 
-                    this.legalMoves.set(board.squares[square.rank][6], move);
-                }
-            }
+            if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
+                const move = new Move(
+                    square, board.squares[square.rank][6], this,
+                    false, MoveType.KingSideCastle);
 
-            // Queenside
-            if (board.squares[square.rank][3].getPiece() == null &&
-                board.squares[square.rank][2].getPiece() == null &&
-                board.squares[square.rank][1].getPiece() == null) {
-                const rookSquarePiece = board.squares[square.rank][0].getPiece();
-
-                if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
-                    const move = new Move(
-                        square, board.squares[square.rank][2], this,
-                        false, MoveType.QueenSideCastle);
-
-                    this.legalMoves.set(board.squares[square.rank][2], move);
-                }
+                legalMoves.set(board.squares[square.rank][6], move);
             }
         }
+        if (King.queensideIsClear(board.squares, square)) {
+            const rookSquarePiece = board.squares[square.rank][0].getPiece();
+
+            if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
+                const move = new Move(
+                    square, board.squares[square.rank][2], this,
+                    false, MoveType.QueenSideCastle);
+
+                legalMoves.set(board.squares[square.rank][2], move);
+            }
+        }
+
+        return legalMoves;
+    }
+
+    private static kingsideIsClear(squares: Square[][], square: Square) {
+        return squares[square.rank][5].getPiece() == null &&
+            squares[square.rank][6].getPiece() == null;
+    }
+
+    private static queensideIsClear(squares: Square[][], square: Square) {
+        return squares[square.rank][3].getPiece() == null &&
+            squares[square.rank][2].getPiece() == null &&
+            squares[square.rank][1].getPiece() == null;
     }
 
     symbol(): string {

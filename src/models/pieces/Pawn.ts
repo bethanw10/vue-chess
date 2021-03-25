@@ -3,7 +3,7 @@ import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 import {Move} from "@/models/moves/Move";
-import {MoveType} from "@/models/MoveType";
+import {MoveType} from "@/models/moves/MoveType";
 
 export class Pawn extends Piece {
     readonly notation: string = 'P';
@@ -30,13 +30,13 @@ export class Pawn extends Piece {
     }
 
     calculateLegalMoves(square: Square, board: Chessboard) {
-        this.legalMoves = new Map<Square, Move>();
+        const legalMoves = new Map<Square, Move>();
 
         const squares = board.squares;
         const {rank, file} = square;
 
         if (rank === this.promotionRank) {
-            return;
+            return legalMoves;
         }
 
         const leftAndRight = [1, -1];
@@ -47,7 +47,7 @@ export class Pawn extends Piece {
             if (this.canCapture(square, diagonalSquare)) {
                 const moveType = diagonalSquare.rank == this.promotionRank ? MoveType.Promotion : MoveType.Standard;
                 const move = new Move(square, diagonalSquare, this, true, moveType);
-                this.legalMoves.set(diagonalSquare, move);
+                legalMoves.set(diagonalSquare, move);
             }
         }
 
@@ -62,7 +62,7 @@ export class Pawn extends Piece {
                         square, squares[rank + this.dy][adjacentSquare.file], this,
                         true, MoveType.EnPassant);
 
-                    this.legalMoves.set(squares[rank + this.dy][adjacentSquare.file], move);
+                    legalMoves.set(squares[rank + this.dy][adjacentSquare.file], move);
                 }
             }
         }
@@ -71,23 +71,29 @@ export class Pawn extends Piece {
         const forwardSquare = squares[rank + this.dy][file];
         const moveType = forwardSquare.rank == this.promotionRank ? MoveType.Promotion : MoveType.Standard;
         if (forwardSquare.getPiece()) {
-            return;
+            return legalMoves;
         }
 
         const move = new Move(square, forwardSquare, this, false, moveType);
-        this.legalMoves.set(forwardSquare, move);
+        legalMoves.set(forwardSquare, move);
 
-        if (rank !== this.promotionRank + this.dy) {
+        if (this.isInBounds(rank + (this.dy * 2), file, squares)) {
             const twoForwardSquare = squares[rank + (this.dy * 2)][file];
             if (rank === this.startRank && !twoForwardSquare.getPiece()) {
                 const move = new Move(square, twoForwardSquare, this, false, MoveType.Standard);
-                this.legalMoves.set(twoForwardSquare, move);
+                legalMoves.set(twoForwardSquare, move);
             }
         }
+
+        return legalMoves;
     }
 
     private static lastMoveWasDoubleStep(piece: Piece | null, board: Chessboard): boolean {
         const lastMove = board.moveHistory.lastMove();
+        if (!lastMove) {
+            return false;
+        }
+
         const isTwoSquareAdvance = Math.abs(lastMove.fromSquare.rank - lastMove.toSquare.rank) == 2;
         return piece instanceof Pawn && piece === lastMove?.piece && isTwoSquareAdvance;
     }

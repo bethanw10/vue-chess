@@ -2,7 +2,9 @@ import {Square} from "@/models/Square";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Chessboard} from "@/models/Chessboard";
 import {Move} from "@/models/moves/Move";
-import {MoveType} from "@/models/MoveType";
+import {MoveType} from "@/models/moves/MoveType";
+
+const _ = require('lodash');
 
 export abstract class Piece {
     abstract readonly notation: string;
@@ -16,12 +18,29 @@ export abstract class Piece {
 
     abstract imageSrc(): string
 
-    abstract calculateLegalMoves(square: Square, board: Chessboard): void
+    abstract calculateLegalMoves(square: Square, board: Chessboard): Map<Square, Move>
 
     abstract symbol(): string
 
     static imageSrc(colour: PieceColour, pieceName: string) {
         return require(`@/assets/pieces/${colour.toString()}/${pieceName}.svg`);
+    }
+
+    updateLegalMoves(square: Square, board: Chessboard) {
+        const moves = this.calculateLegalMoves(square, board);
+
+        // Create a copy of the squares, then make possible move on copy
+        // Check if move would put king in check using this copy
+        const clonedSquares = _.cloneDeep(board.squares)
+
+        for (const [square, move] of moves) {
+            board.movePiece(clonedSquares, move);
+            if (board.kingIsInCheck(clonedSquares, this.colour)) {
+                moves.delete(square);
+            }
+        }
+
+        this.legalMoves = moves;
     }
 
     setHasMoved(hasMoved: boolean) {

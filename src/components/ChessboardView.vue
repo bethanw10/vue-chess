@@ -33,7 +33,7 @@
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="moveIsLegal(square)" class="move-indicator"/>
             <div v-if="waitingForPromotion(square)" class="promotion">
-              <template v-for="promotionPiece in board.promotions" :key="promotionPiece">
+              <template v-for="promotionPiece in board.PROMOTIONS" :key="promotionPiece">
                 <img
                     @click="promote(board.promotionInProgress, promotionPiece)"
                     class="promotion-piece"
@@ -45,12 +45,16 @@
         </template>
       </template>
     </div>
+    <div v-if="!gameIsInProgress" class="game-result-container">
+      <div class="game-result">Win!</div>
+    </div>
   </div>
 </template>
 
 <script>
 import {Chessboard} from "@/models/Chessboard";
 import {Piece} from "@/models/pieces/Piece";
+import {GameResult} from "@/models/GameResult";
 
 export default {
   name: 'ChessboardView',
@@ -64,6 +68,11 @@ export default {
   created() {
     this.board = new Chessboard()
   },
+  computed: {
+    gameIsInProgress() {
+      return this.board.gameState === GameResult.InProgress;
+    },
+  },
   methods: {
     squareColour(i, j) {
       return (i % 2 === 0) === (j % 2 === 0) ? 'light' : 'dark';
@@ -72,16 +81,12 @@ export default {
       e.preventDefault(); // prevents chrome bug
     },
     dragStart(square) {
-      this.showLegalMoves(square);
       this.currentSquare = square;
     },
     moveIsLegal(toSquare) {
       return this.currentSquare &&
           this.currentSquare.getPiece() &&
           this.currentSquare.getPiece().squareIsLegalMove(toSquare);
-    },
-    showLegalMoves(square) {
-      this.board.calculateLegalMoves(square);
     },
     stopMove() {
       this.currentSquare = null;
@@ -121,6 +126,28 @@ export default {
   color: white;
 }
 
+.game-result-container {
+  position: absolute;
+  width: 40vw;
+  height: 40vw;
+  background: #48414182;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-result {
+  height: 40%;
+  width: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  color: #333333;
+  border-radius: 5px;
+  box-shadow: 0 0.5rem 1.5rem rgba(0 0 0 /50%);
+}
+
 .sidebar {
   position: fixed;
   left: 0;
@@ -146,6 +173,7 @@ export default {
 
 .squares {
   display: grid;
+  border-radius: 10px;
   width: 40vw;
   margin: 5vh;
   height: fit-content;

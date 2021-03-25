@@ -1,8 +1,9 @@
 import {Piece} from "@/models/pieces/Piece";
 import {Square} from "@/models/Square";
 import {Pawn} from "@/models/pieces/Pawn";
-import {MoveType} from "@/models/MoveType";
+import {MoveType} from "@/models/moves/MoveType";
 
+// todo check + checkmate
 export class Move {
     fromSquare: Square;
     toSquare: Square;
@@ -21,6 +22,11 @@ export class Move {
         this.piece = piece;
         this.capture = capture;
         this.type = moveType;
+    }
+
+    // todo maybe?
+    fromRank() {
+        return this.fromSquare.rank;
     }
 
     toString() {

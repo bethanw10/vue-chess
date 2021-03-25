@@ -21,8 +21,12 @@ export class MoveHistory {
         }
     }
 
-    lastMove(): Move {
+    lastMove(): Move | null {
+        if (this.moves.length === 0) {
+            return null;
+        }
+
         const lastMoveSet = this.moves[this.moves.length - 1];
-        return <Move>lastMoveSet.blackMove ?? lastMoveSet.whiteMove;
+        return lastMoveSet.blackMove ?? lastMoveSet.whiteMove;
     }
 }

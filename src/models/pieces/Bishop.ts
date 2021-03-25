@@ -16,7 +16,7 @@ export class Bishop extends Piece {
 
     calculateLegalMoves(square: Square, board: Chessboard) {
         const directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-        this.legalMoves = this.calculateMovesUnlimited(square, directions, board.squares);
+        return this.calculateMovesUnlimited(square, directions, board.squares);
     }
 
     symbol(): string {
