@@ -25,8 +25,10 @@
               :class="['square', squareColour(i, j)]"
               @dragover="allowDrop($event)"
               @drop="movePiece(square)">
-            <span v-if="square.file === 0" class="rank-notation">{{ square.rank + 1 }}</span>
-            <span v-if="square.rank === 0" class="file-notation">{{ square.fileLetter() }}</span>
+            <span v-if="square.file === 0" class="notation rank-left">{{ square.rank + 1 }}</span>
+            <span v-if="square.file === 7" class="notation rank-right">{{ square.rank + 1 }}</span>
+            <span v-if="square.rank === 0" class="notation file-top">{{ square.fileLetter() }}</span>
+            <span v-if="square.rank === 7" class="notation file-bottom">{{ square.fileLetter() }}</span>
             <img
                 v-if="square.getPiece()"
                 :class="[{'moveable' : pieceIsMoveable(square)}, 'piece']"
@@ -132,12 +134,34 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap');
+
 .board-container {
   display: flex;
+  font-family: 'Roboto', sans-serif;
+  flex-wrap: wrap;
   height: 100%;
   align-items: center;
   justify-content: center;
   color: white;
+}
+
+.sidebar {
+  left: 0;
+  min-width: 10vw;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+}
+
+.fen-input {
+  flex: 1;
 }
 
 .game-result-container {
@@ -162,26 +186,6 @@ export default {
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50);
 }
 
-.sidebar {
-  position: fixed;
-  left: 0;
-  width: 30vw;
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  padding: 50px;
-  box-sizing: border-box;
-}
-
-.row {
-  display: flex;
-  width: 100%;
-}
-
-.fen-input {
-  flex: 1;
-}
-
 .moves {
   display: grid;
   grid-template-columns: repeat(3, max-content);
@@ -197,43 +201,57 @@ export default {
 
 .squares {
   display: grid;
+  box-sizing: border-box;
+  margin: 32px 50px;
   border-radius: 10px;
-  width: 40vw;
-  margin: 5vh;
-  height: fit-content;
-  grid-template-columns: repeat(8, auto);
-  grid-template-rows: repeat(8, auto);
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50%);
+  border: rgb(71, 69, 79) solid 32px;
+  height: calc(100vh - 64px);
+  width: calc(100vh - 64px);
+  grid-template-columns: repeat(8, 12.5%);
+  grid-template-rows: repeat(8, 12.5%);
 }
 
 .square {
-  width: 5vw;
-  height: 5vw;
+  width: 100%;
+  height: 100%;
   position: relative;
 }
 
-.rank-notation, .file-notation {
-  color: #eee;
+.piece {
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  user-select: none;
+}
+
+.notation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgb(230 214 202);
   position: absolute;
   font-weight: bold;
   user-select: none;
 }
 
-.rank-notation {
+.rank-left {
   left: -20px;
-  top: 50%;
+  height: 100%;
 }
 
-.file-notation {
+.rank-right {
+  height: 100%;
+  right: -20px;
+}
+
+.file-top {
   top: -25px;
-  left: 50%;
+  width: 100%;
 }
 
-.piece {
-  width: 5vw;
-  height: 5vw;
-  z-index: 5;
-  user-select: none;
+.file-bottom {
+  bottom: -25px;
+  width: 100%;
 }
 
 .piece.moveable {
@@ -262,11 +280,11 @@ export default {
 }
 
 .square.light {
-  background: #eee
+  background: rgb(230 214 202);
 }
 
 .square.dark {
-  background: #333
+  background: rgb(171 125 104);
 }
 
 .move-indicator {

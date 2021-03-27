@@ -23,7 +23,6 @@ export class King extends Piece {
 
         // todo cannot castle when squares are under check
 
-        // Castling
         if (this.hasMoved) {
             return legalMoves;
         }

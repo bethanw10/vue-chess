@@ -17,7 +17,8 @@ export default {
 
 <style>
 html, body {
-  background: #2c3e50;
+  /*background: rgb(71, 69, 79);*/
+  background: rgb(58, 56, 66);
   margin: 0;
 }
 
