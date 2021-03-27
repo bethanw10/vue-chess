@@ -147,11 +147,15 @@ export default {
 }
 
 .sidebar {
-  left: 0;
-  min-width: 10vw;
-  align-items: center;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 64px);
+  background: rgb(71, 69, 79);
+  font-size: 14px;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 25vw;
+  align-items: center;
   box-sizing: border-box;
 }
 
@@ -168,7 +172,6 @@ export default {
   position: absolute;
   width: 40vw;
   height: 40vw;
-  background: #48414182;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -191,6 +194,7 @@ export default {
   grid-template-columns: repeat(3, max-content);
   grid-column-gap: 20px;
   grid-row-gap: 5px;
+  margin: 10px;
   align-items: baseline;
   text-align: left;
 }
@@ -202,7 +206,7 @@ export default {
 .squares {
   display: grid;
   box-sizing: border-box;
-  margin: 32px 50px;
+  margin: 32px;
   border-radius: 10px;
   border: rgb(71, 69, 79) solid 32px;
   height: calc(100vh - 64px);
@@ -290,7 +294,7 @@ export default {
 .move-indicator {
   height: 40%;
   width: 40%;
-  background-color: #8cb388;
+  background-color: rgb(0 0 0 / 25%);
   border-radius: 50%;
   position: absolute;
   top: 30%;
@@ -300,14 +304,10 @@ export default {
   pointer-events: none;
 }
 
-.square:drop {
-  background: #bc5a71;
-}
-
 .piece + .move-indicator {
   height: 100%;
   width: 100%;
-  background-color: #bc5a71;
+  background-color: #b03535;
   top: 0;
   left: 0;
   mask: radial-gradient(transparent 50%, #000000 50%);

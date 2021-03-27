@@ -1,4 +1,3 @@
-// todo check + checkmate
 import {MoveType} from "@/models/moves/MoveType";
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
@@ -40,7 +39,6 @@ export class Move {
                 break;
             default:
                 move = this.toSquare.notation();
-
                 break;
         }
 

@@ -56,7 +56,9 @@ export class Pawn extends Piece {
             if (this.canCapture(square, adjacentSquare)) {
                 const piece = adjacentSquare.getPiece();
                 if (Pawn.lastMoveWasDoubleStep(piece, history)) {
-                    const move = new Move(square, squares[rank + this.dy][adjacentSquare.file], this, MoveType.EnPassant, true);
+                    const move = new Move(
+                        square, squares[rank + this.dy][adjacentSquare.file], this,
+                        MoveType.EnPassant, true);
 
                     legalMoves.set(squares[rank + this.dy][adjacentSquare.file], move);
                 }

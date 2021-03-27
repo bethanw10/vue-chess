@@ -39,7 +39,7 @@ export class Chessboard {
     }
 
     getFen() {
-        FenUtil.getFen(this.squares, this.activeColor);
+        return FenUtil.getFen(this.squares, this.activeColor);
     }
 
     updateLegalMoves(color: PieceColour) {
