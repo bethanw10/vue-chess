@@ -29,4 +29,18 @@ export class MoveHistory {
         const lastMoveSet = this.moves[this.moves.length - 1];
         return lastMoveSet.blackMove ?? lastMoveSet.whiteMove;
     }
+
+    recordCheck() {
+        const move = this.lastMove()
+        if (move) {
+            move.check = true;
+        }
+    }
+
+    recordCheckmate() {
+        const move = this.lastMove()
+        if (move) {
+            move.checkmate = true;
+        }
+    }
 }

@@ -1,22 +1,24 @@
-import {Piece} from "@/models/pieces/Piece";
-import {Square} from "@/models/Square";
-import {Pawn} from "@/models/pieces/Pawn";
-import {MoveType} from "@/models/moves/MoveType";
-
 // todo check + checkmate
+import {MoveType} from "@/models/moves/MoveType";
+import {Square} from "@/models/Square";
+import {Piece} from "@/models/pieces/Piece";
+import {Pawn} from "@/models/pieces/Pawn";
+
 export class Move {
     fromSquare: Square;
     toSquare: Square;
     piece: Piece | null;
-    capture: boolean;
     type: MoveType;
+    capture: boolean;
+    check: boolean = false;
+    checkmate: boolean = false;
 
     constructor(
         fromSquare: Square,
         toSquare: Square,
         piece: Piece | null,
-        capture: boolean,
-        moveType: MoveType) {
+        moveType: MoveType,
+        capture: boolean) {
         this.fromSquare = fromSquare;
         this.toSquare = toSquare;
         this.piece = piece;
@@ -24,25 +26,28 @@ export class Move {
         this.type = moveType;
     }
 
-    // todo maybe?
-    fromRank() {
-        return this.fromSquare.rank;
-    }
-
     toString() {
+        let move = '';
         switch (this.type) {
             case MoveType.KingSideCastle:
-                return this.piece?.symbol() + ' O-O';
+                move = 'O-O';
+                break;
             case MoveType.QueenSideCastle:
-                return this.piece?.symbol() + ' O-O-O';
+                move = 'O-O-O';
+                break;
+            case MoveType.Promotion:
+                move = `${this.toSquare.notation()}=${this.piece?.notation}`;
+                break;
+            default:
+                move = this.toSquare.notation();
+
+                break;
         }
 
-        let move = this.toSquare.notation();
-
         if (this.capture) {
-            move = 'x' + move
+            move = `x${move}`
 
-            if (this.piece instanceof Pawn) {
+            if (this.piece instanceof Pawn || this.type === MoveType.Promotion) {
                 move = this.fromSquare.fileLetter() + move;
             }
 
@@ -51,10 +56,14 @@ export class Move {
             }
         }
 
-        if (this.type === MoveType.Promotion) {
-            move = `${move}=${this.piece?.notation}`;
-        } else if (!(this.piece instanceof Pawn)) {
+        if (this.type === MoveType.Standard && !(this.piece instanceof Pawn)) {
             move = this.piece?.notation + move;
+        }
+
+        if (this.checkmate) {
+            move = move + '#';
+        } else if (this.check) {
+            move = move + '+';
         }
 
         return `${this.piece?.symbol()} ${move}`;

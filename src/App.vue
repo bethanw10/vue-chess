@@ -16,10 +16,6 @@ export default {
 </script>
 
 <style>
-* {
-  box-sizing: border-box;
-}
-
 html, body {
   background: #2c3e50;
   margin: 0;

@@ -1,9 +1,9 @@
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
-import {Chessboard} from "@/models/Chessboard";
 import {Move} from "@/models/moves/Move";
 import {MoveType} from "@/models/moves/MoveType";
+import {MoveHistory} from "@/models/moves/MoveHistory";
 
 export class Pawn extends Piece {
     readonly notation: string = 'P';
@@ -16,9 +16,9 @@ export class Pawn extends Piece {
         super(colour);
 
         // White pawns move up the board and black pawns move down
-        this.dy = this.colour == PieceColour.WHITE ? 1 : -1;
-        this.startRank = this.colour == PieceColour.WHITE ? 1 : 6;
-        this.promotionRank = this.colour == PieceColour.WHITE ? 7 : 0;
+        this.dy = this.colour == PieceColour.WHITE ? -1 : 1;
+        this.startRank = this.colour == PieceColour.WHITE ? 6 : 1;
+        this.promotionRank = this.colour == PieceColour.WHITE ? 0 : 7;
     }
 
     imageSrc(): string {
@@ -29,10 +29,8 @@ export class Pawn extends Piece {
         return this.colour === PieceColour.WHITE ? '♟' : '♙';
     }
 
-    calculateLegalMoves(square: Square, board: Chessboard) {
+    calculateLegalMoves(square: Square, squares: Square[][], history: MoveHistory) {
         const legalMoves = new Map<Square, Move>();
-
-        const squares = board.squares;
         const {rank, file} = square;
 
         if (rank === this.promotionRank) {
@@ -46,7 +44,7 @@ export class Pawn extends Piece {
             const diagonalSquare = squares[rank + this.dy][file + dx];
             if (this.canCapture(square, diagonalSquare)) {
                 const moveType = diagonalSquare.rank == this.promotionRank ? MoveType.Promotion : MoveType.Standard;
-                const move = new Move(square, diagonalSquare, this, true, moveType);
+                const move = new Move(square, diagonalSquare, this, moveType, true);
                 legalMoves.set(diagonalSquare, move);
             }
         }
@@ -57,10 +55,8 @@ export class Pawn extends Piece {
 
             if (this.canCapture(square, adjacentSquare)) {
                 const piece = adjacentSquare.getPiece();
-                if (Pawn.lastMoveWasDoubleStep(piece, board)) {
-                    const move = new Move(
-                        square, squares[rank + this.dy][adjacentSquare.file], this,
-                        true, MoveType.EnPassant);
+                if (Pawn.lastMoveWasDoubleStep(piece, history)) {
+                    const move = new Move(square, squares[rank + this.dy][adjacentSquare.file], this, MoveType.EnPassant, true);
 
                     legalMoves.set(squares[rank + this.dy][adjacentSquare.file], move);
                 }
@@ -74,13 +70,13 @@ export class Pawn extends Piece {
             return legalMoves;
         }
 
-        const move = new Move(square, forwardSquare, this, false, moveType);
+        const move = new Move(square, forwardSquare, this, moveType, false);
         legalMoves.set(forwardSquare, move);
 
         if (this.isInBounds(rank + (this.dy * 2), file, squares)) {
             const twoForwardSquare = squares[rank + (this.dy * 2)][file];
             if (rank === this.startRank && !twoForwardSquare.getPiece()) {
-                const move = new Move(square, twoForwardSquare, this, false, MoveType.Standard);
+                const move = new Move(square, twoForwardSquare, this, MoveType.Standard, false);
                 legalMoves.set(twoForwardSquare, move);
             }
         }
@@ -88,8 +84,8 @@ export class Pawn extends Piece {
         return legalMoves;
     }
 
-    private static lastMoveWasDoubleStep(piece: Piece | null, board: Chessboard): boolean {
-        const lastMove = board.moveHistory.lastMove();
+    private static lastMoveWasDoubleStep(piece: Piece | null, history: MoveHistory): boolean {
+        const lastMove = history.lastMove();
         if (!lastMove) {
             return false;
         }

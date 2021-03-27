@@ -1,9 +1,11 @@
 <template>
   <div class="board-container">
     <div class="sidebar">
+      <span>FEN: {{ board.getFen() }}</span>
+      <br>
       <button type="button" @click="newGame()">New Game</button>
-      <label> FEN
-        <input v-model="fen" type="text"/>
+      <label class="row">
+        <input class="fen-input" v-model="fen" type="text" placeholder="Enter FEN"/>
         <button type="button" @click="newGame(fen)">New Game from FEN</button>
       </label>
       <div class="moves">
@@ -22,7 +24,9 @@
               :file="square.file" :rank="square.rank"
               :class="['square', squareColour(i, j)]"
               @dragover="allowDrop($event)"
-              @drop="movePiece($event, square)">
+              @drop="movePiece(square)">
+            <span v-if="square.file === 0" class="rank-notation">{{ square.rank + 1 }}</span>
+            <span v-if="square.rank === 0" class="file-notation">{{ square.fileLetter() }}</span>
             <img
                 v-if="square.getPiece()"
                 :class="[{'moveable' : pieceIsMoveable(square)}, 'piece']"
@@ -46,7 +50,9 @@
       </template>
     </div>
     <div v-if="!gameIsInProgress" class="game-result-container">
-      <div class="game-result">Win!</div>
+      <div v-if="board.gameState === gameResults.WhiteWin" class="game-result">White wins!</div>
+      <div v-if="board.gameState === gameResults.BlackWin" class="game-result">Black wins!</div>
+      <div v-if="board.gameState === gameResults.Draw" class="game-result">Draw</div>
     </div>
   </div>
 </template>
@@ -62,7 +68,8 @@ export default {
     return {
       board: null,
       currentSquare: null,
-      fen: ''
+      fen: '',
+      gameResults: GameResult
     }
   },
   created() {
@@ -81,7 +88,9 @@ export default {
       e.preventDefault(); // prevents chrome bug
     },
     dragStart(square) {
-      this.currentSquare = square;
+      if (square.getPiece()?.colour === this.board.activeColor) {
+        this.currentSquare = square;
+      }
     },
     moveIsLegal(toSquare) {
       return this.currentSquare &&
@@ -91,9 +100,14 @@ export default {
     stopMove() {
       this.currentSquare = null;
     },
-    movePiece(e, toSquare) {
+    movePiece(toSquare) {
       if (this.moveIsLegal(toSquare)) {
         let move = this.currentSquare.getMove(toSquare);
+
+        if (move.piece.colour !== this.board.activeColor) {
+          return;
+        }
+
         this.board.makeMove(move);
         this.currentSquare = null;
       }
@@ -145,7 +159,7 @@ export default {
   background: white;
   color: #333333;
   border-radius: 5px;
-  box-shadow: 0 0.5rem 1.5rem rgba(0 0 0 /50%);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50);
 }
 
 .sidebar {
@@ -156,6 +170,16 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 50px;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+}
+
+.fen-input {
+  flex: 1;
 }
 
 .moves {
@@ -179,6 +203,7 @@ export default {
   height: fit-content;
   grid-template-columns: repeat(8, auto);
   grid-template-rows: repeat(8, auto);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50%);
 }
 
 .square {
@@ -187,10 +212,28 @@ export default {
   position: relative;
 }
 
+.rank-notation, .file-notation {
+  color: #eee;
+  position: absolute;
+  font-weight: bold;
+  user-select: none;
+}
+
+.rank-notation {
+  left: -20px;
+  top: 50%;
+}
+
+.file-notation {
+  top: -25px;
+  left: 50%;
+}
+
 .piece {
   width: 5vw;
   height: 5vw;
   z-index: 5;
+  user-select: none;
 }
 
 .piece.moveable {

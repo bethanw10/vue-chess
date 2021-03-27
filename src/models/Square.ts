@@ -1,11 +1,11 @@
 import {Piece} from "@/models/pieces/Piece";
 
 export class Square {
-    LOWERCASE_CHAR_OFFSET = 97;
-
+    _piece: Piece | null;
     rank: number;
     file: number;
-    _piece: Piece | null;
+
+    LOWERCASE_CHAR_OFFSET = 97;
 
     constructor(rank: number, file: number, piece: Piece | null = null) {
         this.rank = rank;

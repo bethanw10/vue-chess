@@ -1,7 +1,7 @@
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
-import {Chessboard} from "@/models/Chessboard";
+import {MoveHistory} from "@/models/moves/MoveHistory";
 
 export class Knight extends Piece {
     readonly notation: string = 'N';
@@ -14,9 +14,9 @@ export class Knight extends Piece {
         return Piece.imageSrc(this.colour, "knight");
     }
 
-    calculateLegalMoves(square: Square, board: Chessboard) {
+    calculateLegalMoves(square: Square, squares: Square[][], history: MoveHistory) {
         const directions = [[2, 1], [2, -1], [1, 2], [-1, 2], [-2, 1], [-2, -1], [1, -2], [-1, -2]];
-        return this.calculateMovesLimited(square, directions, board.squares);
+        return this.calculateMovesLimited(square, directions, squares);
     }
 
     symbol(): string {

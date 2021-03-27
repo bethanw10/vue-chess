@@ -1,8 +1,9 @@
-import {Square} from "@/models/Square";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
-import {Chessboard} from "@/models/Chessboard";
 import {Move} from "@/models/moves/Move";
+import {Chessboard} from "@/models/Chessboard";
 import {MoveType} from "@/models/moves/MoveType";
+import {Square} from "@/models/Square";
+import {MoveHistory} from "@/models/moves/MoveHistory";
 
 const _ = require('lodash');
 
@@ -18,7 +19,7 @@ export abstract class Piece {
 
     abstract imageSrc(): string
 
-    abstract calculateLegalMoves(square: Square, board: Chessboard): Map<Square, Move>
+    abstract calculateLegalMoves(square: Square, squares: Square[][], history: MoveHistory): Map<Square, Move>
 
     abstract symbol(): string
 
@@ -27,13 +28,13 @@ export abstract class Piece {
     }
 
     updateLegalMoves(square: Square, board: Chessboard) {
-        const moves = this.calculateLegalMoves(square, board);
-
-        // Create a copy of the squares, then make possible move on copy
-        // Check if move would put king in check using this copy
-        const clonedSquares = _.cloneDeep(board.squares)
+        const moves = this.calculateLegalMoves(square, board.squares, board.moveHistory);
 
         for (const [square, move] of moves) {
+            // Create a copy of the squares, then make possible move on copy
+            // Check if move would put king in check using this copy
+            const clonedSquares = _.cloneDeep(board.squares)
+
             board.movePiece(clonedSquares, move);
             if (board.kingIsInCheck(clonedSquares, this.colour)) {
                 moves.delete(square);
@@ -41,6 +42,7 @@ export abstract class Piece {
         }
 
         this.legalMoves = moves;
+        return moves;
     }
 
     setHasMoved(hasMoved: boolean) {
@@ -63,14 +65,14 @@ export abstract class Piece {
             while (this.isInBounds(x, y, squares)) {
                 if (squares[x][y].getPiece()) {
                     if (this.canCapture(square, squares[x][y])) {
-                        const move = new Move(square, squares[x][y], this, true, MoveType.Standard);
+                        const move = new Move(square, squares[x][y], this, MoveType.Standard, true);
                         legalSquares.set(squares[x][y], move);
                     }
 
                     break;
                 }
 
-                const move = new Move(square, squares[x][y], this, false, MoveType.Standard);
+                const move = new Move(square, squares[x][y], this, MoveType.Standard, false);
                 legalSquares.set(squares[x][y], move);
                 x += dx;
                 y += dy;
@@ -88,7 +90,10 @@ export abstract class Piece {
             const y = square.file + dy;
 
             if (this.isInBounds(x, y, squares) && !this.isBlocked(square, squares[x][y])) {
-                const move = new Move(square, squares[x][y], this, this.canCapture(square, squares[x][y]), MoveType.Standard);
+                const move = new Move(
+                    square, squares[x][y], this, MoveType.Standard,
+                    this.canCapture(square, squares[x][y]));
+
                 legalSquares.set(squares[x][y], move);
             }
         }

@@ -1,10 +1,10 @@
 import {Square} from "@/models/Square";
 import {Piece} from "@/models/pieces/Piece";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
-import {Chessboard} from "@/models/Chessboard";
 import {Rook} from "@/models/pieces/Rook";
 import {Move} from "@/models/moves/Move";
 import {MoveType} from "@/models/moves/MoveType";
+import {MoveHistory} from "@/models/moves/MoveHistory";
 
 export class King extends Piece {
     readonly notation: string = 'K';
@@ -17,14 +17,9 @@ export class King extends Piece {
         return Piece.imageSrc(this.colour, "king");
     }
 
-    calculateLegalMoves(square: Square, board: Chessboard) {
+    calculateLegalMoves(square: Square, squares: Square[][], history: MoveHistory) {
         const directions = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
-        const legalMoves = this.calculateMovesLimited(square, directions, board.squares);
-
-        // todo check
-        for (const square of legalMoves) {
-            //
-        }
+        const legalMoves = this.calculateMovesLimited(square, directions, squares);
 
         // todo cannot castle when squares are under check
 
@@ -33,26 +28,22 @@ export class King extends Piece {
             return legalMoves;
         }
 
-        if (King.kingsideIsClear(board.squares, square)) {
-            const rookSquarePiece = board.squares[square.rank][7].getPiece();
+        if (King.kingsideIsClear(squares, square)) {
+            const rookSquarePiece = squares[square.rank][7].getPiece();
 
             if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
-                const move = new Move(
-                    square, board.squares[square.rank][6], this,
-                    false, MoveType.KingSideCastle);
+                const move = new Move(square, squares[square.rank][6], this, MoveType.KingSideCastle, false);
 
-                legalMoves.set(board.squares[square.rank][6], move);
+                legalMoves.set(squares[square.rank][6], move);
             }
         }
-        if (King.queensideIsClear(board.squares, square)) {
-            const rookSquarePiece = board.squares[square.rank][0].getPiece();
+        if (King.queensideIsClear(squares, square)) {
+            const rookSquarePiece = squares[square.rank][0].getPiece();
 
             if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
-                const move = new Move(
-                    square, board.squares[square.rank][2], this,
-                    false, MoveType.QueenSideCastle);
+                const move = new Move(square, squares[square.rank][2], this, MoveType.QueenSideCastle, false);
 
-                legalMoves.set(board.squares[square.rank][2], move);
+                legalMoves.set(squares[square.rank][2], move);
             }
         }
 
