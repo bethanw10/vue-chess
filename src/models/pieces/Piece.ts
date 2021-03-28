@@ -30,19 +30,44 @@ export abstract class Piece {
     updateLegalMoves(square: Square, board: Chessboard) {
         const moves = this.calculateLegalMoves(square, board.squares, board.moveHistory);
 
+        // Create a copy of the squares, then make possible move on copy
+        // Then check if king would be in check
         for (const [square, move] of moves) {
-            // Create a copy of the squares, then make possible move on copy
-            // Check if move would put king in check using this copy
-            const clonedSquares = _.cloneDeep(board.squares)
-
-            board.movePiece(clonedSquares, move);
-            if (board.kingIsInCheck(clonedSquares, this.colour)) {
+            if (this.moveWouldPutKingInCheck(board, move)) {
                 moves.delete(square);
+            }
+
+            // Cannot castle if king would have to move through check
+            if (move.type === MoveType.QueenSideCastle) {
+                const kingMove = new Move(
+                    move.fromSquare, board.squares[move.toSquare.rank][3],
+                    move.piece, MoveType.Standard, false);
+
+                if (this.moveWouldPutKingInCheck(board, kingMove)) {
+                    moves.delete(square);
+                }
+            }
+
+            if (move.type === MoveType.KingSideCastle) {
+                const kingMove = new Move(
+                    move.fromSquare, board.squares[move.toSquare.rank][5],
+                    move.piece, MoveType.Standard, false);
+
+                if (this.moveWouldPutKingInCheck(board, kingMove)) {
+                    moves.delete(square);
+                }
             }
         }
 
+
         this.legalMoves = moves;
         return moves;
+    }
+
+    moveWouldPutKingInCheck(board: Chessboard, move: Move) {
+        const clonedSquares = _.cloneDeep(board.squares)
+        board.movePiece(clonedSquares, move);
+        return board.kingIsInCheck(clonedSquares, this.colour);
     }
 
     setHasMoved(hasMoved: boolean) {

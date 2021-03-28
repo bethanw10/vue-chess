@@ -16,6 +16,7 @@ import {FenUtil} from "@/models/FenUtil";
 // todo show taken pieces?
 // todo board is backwards
 // todo diff indicators by move type?
+// todo sidebar, overflowing PGN
 export class Chessboard {
     readonly PROMOTIONS: string[] = ["queen", "knight", "bishop", "rook"];
 

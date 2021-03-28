@@ -1,13 +1,15 @@
 <template>
   <div class="board-container">
     <div class="sidebar">
-      <span>FEN: {{ board.getFen() }}</span>
+      <span class="fen">FEN: {{ board.getFen() }}</span>
       <br>
-      <button type="button" @click="newGame()">New Game</button>
-      <label class="row">
+      <div>
+        <button type="button" @click="newGame()">New Game</button>
+      </div>
+      <div>
         <input class="fen-input" v-model="fen" type="text" placeholder="Enter FEN"/>
-        <button type="button" @click="newGame(fen)">New Game from FEN</button>
-      </label>
+        <button class="" type="button" @click="newGame(fen)">Load</button>
+      </div>
       <div class="moves">
         <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
           <span>{{ i + 1 }}.</span>
@@ -133,6 +135,7 @@ export default {
 }
 </script>
 
+// todo stylus?
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap');
 
@@ -162,6 +165,10 @@ export default {
 .row {
   display: flex;
   width: 100%;
+}
+
+.fen {
+  width: 25vw;
 }
 
 .fen-input {
@@ -272,14 +279,14 @@ export default {
   position: absolute;
   top: 0;
   background: #acc5aaa3;
-  width: 5vw;
-  height: 5vw;
+  width: 100%;
+  height: 100%;
   z-index: 6;
 }
 
 .promotion-piece {
-  width: 2.5vw;
-  height: 2.5vw;
+  width: 100%;
+  height: 100%;
   cursor: pointer;
 }
 

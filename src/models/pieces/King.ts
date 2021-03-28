@@ -21,8 +21,6 @@ export class King extends Piece {
         const directions = [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
         const legalMoves = this.calculateMovesLimited(square, directions, squares);
 
-        // todo cannot castle when squares are under check
-
         if (this.hasMoved) {
             return legalMoves;
         }
