@@ -55,12 +55,14 @@ export class Pawn extends Piece {
 
             if (this.canCapture(square, adjacentSquare)) {
                 const piece = adjacentSquare.getPiece();
-                if (Pawn.lastMoveWasDoubleStep(piece, history)) {
+                const targetSquare = squares[rank + this.dy][adjacentSquare.file];
+
+                if (history.enPassantTarget === targetSquare || Pawn.lastMoveWasDoubleStep(piece, history)) {
                     const move = new Move(
-                        square, squares[rank + this.dy][adjacentSquare.file], this,
+                        square, targetSquare, this,
                         MoveType.EnPassant, true);
 
-                    legalMoves.set(squares[rank + this.dy][adjacentSquare.file], move);
+                    legalMoves.set(targetSquare, move);
                 }
             }
         }
@@ -92,8 +94,7 @@ export class Pawn extends Piece {
             return false;
         }
 
-        const isTwoSquareAdvance = Math.abs(lastMove.fromSquare.rank - lastMove.toSquare.rank) == 2;
-        return piece instanceof Pawn && piece === lastMove?.piece && isTwoSquareAdvance;
+        return lastMove?.piece === piece && lastMove.isPawnDoubleStep();
     }
 }
 

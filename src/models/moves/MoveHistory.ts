@@ -2,14 +2,29 @@
 import {PieceColour} from "@/models/pieces/Piece-Colour";
 import {Move} from "@/models/moves/Move";
 import {MoveSet} from "@/models/moves/MoveSet";
+import {Square} from "@/models/Square";
+import {Pawn} from "@/models/pieces/Pawn";
 
 export class MoveHistory {
     moves: MoveSet[] = []
+    halfTimeClock: number = 0;
+    fullTimeClock: number = 0;
+
+    // 'Overrides' based on FEN input
+    queensideCanCastle = {[PieceColour.WHITE]: true, [PieceColour.BLACK]: true}
+    kingsideCanCastle = {[PieceColour.WHITE]: true, [PieceColour.BLACK]: true}
+    enPassantTarget: Square | null = null;
 
     constructor() {
     }
 
     recordMove(move: Move) {
+        if (move.capture || move.piece instanceof Pawn) {
+            this.halfTimeClock = 0;
+        } else {
+            this.halfTimeClock++;
+        }
+
         if (move.piece?.colour === PieceColour.WHITE) {
             this.moves.push(new MoveSet(move));
         } else {
@@ -18,7 +33,10 @@ export class MoveHistory {
             }
 
             this.moves[this.moves.length - 1].recordBlackMove(move);
+            this.fullTimeClock++;
         }
+
+        this.enPassantTarget = null;
     }
 
     lastMove(): Move | null {
@@ -42,5 +60,24 @@ export class MoveHistory {
         if (move) {
             move.checkmate = true;
         }
+    }
+
+    setCastlingOverrides(castling: string) {
+        if (!castling.includes('K')) {
+            this.kingsideCanCastle[PieceColour.WHITE] = false;
+        }
+        if (!castling.includes('k')) {
+            this.kingsideCanCastle[PieceColour.BLACK] = false;
+        }
+        if (!castling.includes('Q')) {
+            this.queensideCanCastle[PieceColour.WHITE] = false;
+        }
+        if (!castling.includes('q')) {
+            this.queensideCanCastle[PieceColour.BLACK] = false;
+        }
+    }
+
+    setEnPassantSquare(square: Square) {
+        this.enPassantTarget = square;
     }
 }

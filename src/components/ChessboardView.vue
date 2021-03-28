@@ -1,12 +1,15 @@
+<!--suppress XmlHighlighting -->
 <template>
   <div class="board-container">
     <div class="sidebar">
-      <span class="fen">FEN: {{ board.getFen() }}</span>
-      <br>
-      <div>
+      <div class="fen">
+        <b>FEN</b>
+        <div>{{ board.getFen() }}</div>
+      </div>
+      <div class="row">
         <button type="button" @click="newGame()">New Game</button>
       </div>
-      <div>
+      <div class="row">
         <input class="fen-input" v-model="fen" type="text" placeholder="Enter FEN"/>
         <button class="" type="button" @click="newGame(fen)">Load</button>
       </div>

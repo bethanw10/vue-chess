@@ -25,8 +25,12 @@ export class Move {
         this.type = moveType;
     }
 
+    isPawnDoubleStep() {
+        return this.piece instanceof Pawn && Math.abs(this.fromSquare.rank - this.toSquare.rank) == 2;
+    }
+
     toString() {
-        let move = '';
+        let move: string;
         switch (this.type) {
             case MoveType.KingSideCastle:
                 move = 'O-O';

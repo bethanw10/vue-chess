@@ -5,7 +5,7 @@ export class Square {
     rank: number;
     file: number;
 
-    LOWERCASE_CHAR_OFFSET = 97;
+    static LOWERCASE_CHAR_OFFSET = 97;
 
     constructor(rank: number, file: number, piece: Piece | null = null) {
         this.rank = rank;
@@ -18,7 +18,7 @@ export class Square {
     }
 
     fileLetter() {
-        return String.fromCharCode(this.file + this.LOWERCASE_CHAR_OFFSET);
+        return String.fromCharCode(this.file + Square.LOWERCASE_CHAR_OFFSET);
     }
 
     setPiece(piece: Piece | null) {

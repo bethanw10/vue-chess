@@ -24,7 +24,6 @@ export class Chessboard {
     moveHistory: MoveHistory = new MoveHistory;
     activeColor: PieceColour = PieceColour.WHITE;
     promotionInProgress: Move | null = null;
-
     gameState: GameResult = GameResult.InProgress;
 
     constructor() {
@@ -40,21 +39,7 @@ export class Chessboard {
     }
 
     getFen() {
-        return FenUtil.getFen(this.squares, this.activeColor);
-    }
-
-    updateLegalMoves(color: PieceColour) {
-        let numMoves = 0;
-        for (const square of Chessboard.squaresIterator(this.squares)) {
-            const piece = square.getPiece();
-
-            if (piece && piece.colour === color) {
-                const moves = piece.updateLegalMoves(square, this);
-                numMoves += moves.size;
-            }
-        }
-
-        return numMoves;
+        return FenUtil.getFen(this.squares, this.moveHistory, this.activeColor);
     }
 
     makeMove(move: Move) {
@@ -121,6 +106,20 @@ export class Chessboard {
         }
 
         return false;
+    }
+
+    private updateLegalMoves(color: PieceColour) {
+        let numMoves = 0;
+        for (const square of Chessboard.squaresIterator(this.squares)) {
+            const piece = square.getPiece();
+
+            if (piece && piece.colour === color) {
+                const moves = piece.updateLegalMoves(square, this);
+                numMoves += moves.size;
+            }
+        }
+
+        return numMoves;
     }
 
     private checkGameState() {

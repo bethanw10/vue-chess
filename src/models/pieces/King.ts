@@ -25,7 +25,7 @@ export class King extends Piece {
             return legalMoves;
         }
 
-        if (King.kingsideIsClear(squares, square)) {
+        if (history.kingsideCanCastle[this.colour] && King.kingsideIsClear(squares, square)) {
             const rookSquarePiece = squares[square.rank][7].getPiece();
 
             if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
@@ -34,7 +34,7 @@ export class King extends Piece {
                 legalMoves.set(squares[square.rank][6], move);
             }
         }
-        if (King.queensideIsClear(squares, square)) {
+        if (history.queensideCanCastle[this.colour] && King.queensideIsClear(squares, square)) {
             const rookSquarePiece = squares[square.rank][0].getPiece();
 
             if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {

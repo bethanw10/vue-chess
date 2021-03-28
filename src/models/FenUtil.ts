@@ -23,7 +23,10 @@ export class FenUtil {
         const data = fen.split(' ');
         const rows = data[0].split('/');
         const active = data[1];
-        // todo castling, en passant, halftime, full time clock
+        const castling = data[2];
+        const enPassant = data[3];
+        const halfTime = data[4];
+        const fullTime = data[5];
 
         board.activeColor = active === 'w' ? PieceColour.WHITE : PieceColour.BLACK;
 
@@ -49,9 +52,29 @@ export class FenUtil {
             file = 0
             rank += 1;
         }
+
+        if (castling) {
+            board.moveHistory.setCastlingOverrides(castling);
+        }
+
+        if (enPassant && enPassant !== '-') {
+            const file = enPassant.charCodeAt(0) - Square.LOWERCASE_CHAR_OFFSET;
+            const rank = parseInt(enPassant[1]) - 1;
+
+            board.moveHistory.setEnPassantSquare(board.squares[rank][file]);
+        }
+
+        if (halfTime) {
+            board.moveHistory.halfTimeClock = parseInt(halfTime);
+        }
+
+        if (fullTime) {
+            board.moveHistory.fullTimeClock = parseInt(fullTime);
+        }
     }
 
-    static getFen(squares: Square[][], activeColor: PieceColour) {
+    // todo castling availability, halftime, full time
+    static getFen(squares: Square[][], history: MoveHistory, activeColor: PieceColour) {
         let fen = '';
 
         for (const file of squares) {
@@ -85,6 +108,19 @@ export class FenUtil {
             fen += " b"
         }
 
+        const lastMove = history.lastMove();
+        if (lastMove && lastMove.isPawnDoubleStep()) {
+            const targetRank = Math.abs(lastMove.toSquare.rank - lastMove.fromSquare.rank);
+            const targetSquare = squares[targetRank][lastMove.toSquare.file];
+
+            fen += targetSquare.notation()
+        } else {
+            fen += ' -'
+        }
+
+        fen += ` ${Math.floor(history.halfTimeClock)}`;
+        fen += ` ${history.fullTimeClock}`;
+
         return fen;
     }
 
@@ -107,7 +143,9 @@ export class FenUtil {
         }
     }
 
-    private static getPieceColor = (pieceChar: string) => /^[A-Z]*$/.test(pieceChar) ? PieceColour.WHITE : PieceColour.BLACK;
+    private static getPieceColor = (pieceChar: string) => /^[A-Z]*$/.test(pieceChar)
+        ? PieceColour.WHITE
+        : PieceColour.BLACK;
 
     private static isLetter = (string: string) => /[a-zA-Z]/.test(string);
 
