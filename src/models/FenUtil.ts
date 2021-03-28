@@ -8,6 +8,7 @@ import {Queen} from "@/models/pieces/Queen";
 import {King} from "@/models/pieces/King";
 import {Pawn} from "@/models/pieces/Pawn";
 import {Square} from "@/models/Square";
+import {Piece} from "@/models/pieces/Piece";
 
 export class FenUtil {
     private static DEFAULT_FEN: string = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -21,19 +22,14 @@ export class FenUtil {
         board.squares = this.createEmptyBoard();
 
         const data = fen.split(' ');
-        const rows = data[0].split('/');
-        const active = data[1];
-        const castling = data[2];
-        const enPassant = data[3];
-        const halfTime = data[4];
-        const fullTime = data[5];
+        const [rows, active, castling, enPassant, halfTime, fullTime] = data;
 
         board.activeColor = active === 'w' ? PieceColour.WHITE : PieceColour.BLACK;
 
-        let rank = 0;
+        let rank = 7;
         let file = 0;
 
-        for (const row of rows) {
+        for (const row of rows.split('/')) {
             for (const character of row) {
                 if (this.isLetter(character)) {
                     const piece = this.createPiece(character);
@@ -45,12 +41,12 @@ export class FenUtil {
                     file += 1;
                 } else {
                     const emptySpaces = +character;
-                    file += emptySpaces
+                    file -= emptySpaces
                 }
             }
 
-            file = 0
-            rank += 1;
+            file = 0;
+            rank -= 1;
         }
 
         if (castling) {
@@ -73,11 +69,10 @@ export class FenUtil {
         }
     }
 
-    // todo castling availability, halftime, full time
     static getFen(squares: Square[][], history: MoveHistory, activeColor: PieceColour) {
         let fen = '';
 
-        for (const file of squares) {
+        for (const file of squares.slice().reverse()) {
             let emptyCount = 0
             for (const square of file) {
                 if (square.getPiece()) {
@@ -102,10 +97,60 @@ export class FenUtil {
             fen += '/';
         }
 
-        if (activeColor === PieceColour.WHITE) {
-            fen += " w"
-        } else {
-            fen += " b"
+        fen += activeColor === PieceColour.WHITE ? " w" : " b";
+
+        fen += " " + this.getCastling(squares, history);
+
+        fen += " " + this.getEnPassant(squares, history);
+
+        fen += ` ${Math.floor(history.halfTimeClock)}`;
+        fen += ` ${history.fullTimeClock}`;
+
+        return fen;
+    }
+
+    private static getCastling(squares: Square[][], history: MoveHistory) {
+        let castling = '';
+        let kingSquarePiece = squares[0][3].getPiece();
+        if (this.kingCanCastle(kingSquarePiece)) {
+            const rightRookSquarePiece = squares[0][7].getPiece();
+            if (history.kingsideCanCastle[PieceColour.WHITE] && this.rookCanCastle(rightRookSquarePiece)) {
+                castling += "K"
+            }
+
+            const leftRookSquarePiece = squares[0][0].getPiece();
+            if (history.queensideCanCastle[PieceColour.WHITE] && this.rookCanCastle(leftRookSquarePiece)) {
+                castling += "Q"
+            }
+        }
+
+        kingSquarePiece = squares[7][3].getPiece();
+        if (this.kingCanCastle(kingSquarePiece)) {
+            const rightRookSquarePiece = squares[7][7].getPiece();
+            if (history.kingsideCanCastle[PieceColour.BLACK] && this.rookCanCastle(rightRookSquarePiece)) {
+                castling += "k"
+            }
+
+            const leftRookSquarePiece = squares[7][0].getPiece();
+            if (history.kingsideCanCastle[PieceColour.BLACK] && this.rookCanCastle(leftRookSquarePiece)) {
+                castling += "q"
+            }
+        }
+
+        return castling ? castling : '-';
+    }
+
+    private static kingCanCastle(king: Piece | null) {
+        return king && king instanceof King && !king.hasMoved;
+    }
+
+    private static rookCanCastle(rook: Piece | null) {
+        return rook && rook instanceof Rook && !rook.hasMoved;
+    }
+
+    private static getEnPassant(squares: Square[][], history: MoveHistory) {
+        if (history.enPassantTarget) {
+            return history.enPassantTarget.notation();
         }
 
         const lastMove = history.lastMove();
@@ -113,15 +158,9 @@ export class FenUtil {
             const targetRank = Math.abs(lastMove.toSquare.rank - lastMove.fromSquare.rank);
             const targetSquare = squares[targetRank][lastMove.toSquare.file];
 
-            fen += targetSquare.notation()
-        } else {
-            fen += ' -'
+            return targetSquare.notation()
         }
-
-        fen += ` ${Math.floor(history.halfTimeClock)}`;
-        fen += ` ${history.fullTimeClock}`;
-
-        return fen;
+        return '-'
     }
 
     private static createPiece(char: string) {

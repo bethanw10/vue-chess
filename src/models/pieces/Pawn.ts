@@ -16,9 +16,9 @@ export class Pawn extends Piece {
         super(colour);
 
         // White pawns move up the board and black pawns move down
-        this.dy = this.colour == PieceColour.WHITE ? -1 : 1;
-        this.startRank = this.colour == PieceColour.WHITE ? 6 : 1;
-        this.promotionRank = this.colour == PieceColour.WHITE ? 0 : 7;
+        this.dy = this.colour == PieceColour.WHITE ? 1 : -1;
+        this.startRank = this.colour == PieceColour.WHITE ? 1 : 6;
+        this.promotionRank = this.colour == PieceColour.WHITE ? 7 : 0;
     }
 
     imageSrc(): string {

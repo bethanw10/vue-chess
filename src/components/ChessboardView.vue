@@ -22,6 +22,11 @@
       </div>
     </div>
     <div class="squares">
+      <div v-if="!gameIsInProgress" class="game-result-container">
+        <div v-if="board.gameState === gameResults.WhiteWin" class="game-result">White wins!</div>
+        <div v-if="board.gameState === gameResults.BlackWin" class="game-result">Black wins!</div>
+        <div v-if="board.gameState === gameResults.Draw" class="game-result">Draw</div>
+      </div>
       <template v-for="(file, i) in board.squares">
         <template :key="square.notation()" v-for="(square, j) in file">
           <div
@@ -56,14 +61,10 @@
         </template>
       </template>
     </div>
-    <div v-if="!gameIsInProgress" class="game-result-container">
-      <div v-if="board.gameState === gameResults.WhiteWin" class="game-result">White wins!</div>
-      <div v-if="board.gameState === gameResults.BlackWin" class="game-result">Black wins!</div>
-      <div v-if="board.gameState === gameResults.Draw" class="game-result">Draw</div>
-    </div>
   </div>
 </template>
 
+// todo flip board
 <script>
 import {Chessboard} from "@/models/Chessboard";
 import {Piece} from "@/models/pieces/Piece";
@@ -180,11 +181,13 @@ export default {
 
 .game-result-container {
   position: absolute;
-  width: 40vw;
-  height: 40vw;
+  background: #3333338a;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 6;
 }
 
 .game-result {
@@ -196,7 +199,7 @@ export default {
   background: white;
   color: #333333;
   border-radius: 5px;
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50%);
 }
 
 .moves {
@@ -214,6 +217,7 @@ export default {
 }
 
 .squares {
+  position: relative;
   display: grid;
   box-sizing: border-box;
   margin: 32px;
