@@ -90,7 +90,10 @@ export abstract class Piece {
             while (this.isInBounds(x, y, squares)) {
                 if (squares[x][y].getPiece()) {
                     if (this.canCapture(square, squares[x][y])) {
-                        const move = new Move(square, squares[x][y], this, MoveType.Standard, true);
+                        const move = new Move(
+                            square, squares[x][y], this, MoveType.Standard,
+                            true, squares[x][y].getPiece());
+
                         legalSquares.set(squares[x][y], move);
                     }
 
@@ -115,9 +118,12 @@ export abstract class Piece {
             const y = square.file + dy;
 
             if (this.isInBounds(x, y, squares) && !this.isBlocked(square, squares[x][y])) {
+                const isCapture = this.canCapture(square, squares[x][y]);
+                const capturePiece = isCapture ? squares[x][y].getPiece() : null;
+
                 const move = new Move(
                     square, squares[x][y], this, MoveType.Standard,
-                    this.canCapture(square, squares[x][y]));
+                    isCapture, capturePiece);
 
                 legalSquares.set(squares[x][y], move);
             }

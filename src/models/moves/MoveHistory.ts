@@ -4,9 +4,12 @@ import {Move} from "@/models/moves/Move";
 import {MoveSet} from "@/models/moves/MoveSet";
 import {Square} from "@/models/Square";
 import {Pawn} from "@/models/pieces/Pawn";
+import {Piece} from "@/models/pieces/Piece";
 
 export class MoveHistory {
     moves: MoveSet[] = []
+    capturedPieces: Piece[] = [];
+
     halfTimeClock: number = 0;
     fullTimeClock: number = 0;
 
@@ -34,6 +37,10 @@ export class MoveHistory {
 
             this.moves[this.moves.length - 1].recordBlackMove(move);
             this.fullTimeClock++;
+        }
+
+        if (move.capturedPiece) {
+            this.capturedPieces.push(move.capturedPiece);
         }
 
         this.enPassantTarget = null;

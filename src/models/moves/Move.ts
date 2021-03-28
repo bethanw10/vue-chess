@@ -7,6 +7,7 @@ export class Move {
     fromSquare: Square;
     toSquare: Square;
     piece: Piece | null;
+    capturedPiece: Piece | null;
     type: MoveType;
     capture: boolean;
     check: boolean = false;
@@ -17,12 +18,14 @@ export class Move {
         toSquare: Square,
         piece: Piece | null,
         moveType: MoveType,
-        capture: boolean) {
+        capture: boolean = false,
+        capturedPiece: Piece | null = null) {
         this.fromSquare = fromSquare;
         this.toSquare = toSquare;
         this.piece = piece;
         this.capture = capture;
         this.type = moveType;
+        this.capturedPiece = capturedPiece;
     }
 
     isPawnDoubleStep() {

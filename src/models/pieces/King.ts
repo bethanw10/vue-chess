@@ -29,7 +29,7 @@ export class King extends Piece {
             const rookSquarePiece = squares[square.rank][7].getPiece();
 
             if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
-                const move = new Move(square, squares[square.rank][6], this, MoveType.KingSideCastle, false);
+                const move = new Move(square, squares[square.rank][6], this, MoveType.KingSideCastle);
 
                 legalMoves.set(squares[square.rank][6], move);
             }
@@ -38,7 +38,7 @@ export class King extends Piece {
             const rookSquarePiece = squares[square.rank][0].getPiece();
 
             if (rookSquarePiece instanceof Rook && !rookSquarePiece?.hasMoved) {
-                const move = new Move(square, squares[square.rank][2], this, MoveType.QueenSideCastle, false);
+                const move = new Move(square, squares[square.rank][2], this, MoveType.QueenSideCastle);
 
                 legalMoves.set(squares[square.rank][2], move);
             }

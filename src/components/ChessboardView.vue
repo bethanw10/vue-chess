@@ -3,7 +3,7 @@
   <div class="board-container">
     <div class="sidebar">
       <div class="fen">
-        <b>FEN</b>
+        <span class="title">FEN</span>
         <div>{{ board.getFen() }}</div>
       </div>
       <div class="row">
@@ -13,11 +13,22 @@
         <input class="fen-input" v-model="fen" type="text" placeholder="Enter FEN"/>
         <button class="" type="button" @click="newGame(fen)">Load</button>
       </div>
-      <div class="moves">
-        <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
-          <span>{{ i + 1 }}.</span>
-          <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b></span> <span v-else></span>
-          <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span> <span v-else></span>
+      <div class="move-history">
+        <div class="title">Moves</div>
+        <span v-if="board.moveHistory.moves.length === 0"> - </span>
+        <div class="moves-grid">
+          <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
+            <span>{{ i + 1 }}.</span>
+            <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b></span> <span v-else></span>
+            <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span> <span v-else></span>
+          </template>
+        </div>
+      </div>
+      <div class="captured-pieces">
+        <div class="title">Captured Pieces</div>
+        <span v-if="board.moveHistory.moves.length === 0"> - </span>
+        <template v-for="(capturedPiece, i) in board.moveHistory.capturedPieces" :key="i">
+          {{ capturedPiece.symbol() }}
         </template>
       </div>
     </div>
@@ -156,7 +167,8 @@ export default {
 .sidebar {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 64px);
+  min-height: calc(100vh - 64px);
+  max-height: calc(100vh - 64px);
   background: rgb(71, 69, 79);
   font-size: 14px;
   border-radius: 10px;
@@ -166,12 +178,19 @@ export default {
   box-sizing: border-box;
 }
 
+.title {
+  font-weight: bold;
+  font-size: 18px;
+  font-family: 'Lato', sans-serif;
+}
+
 .row {
   display: flex;
   width: 100%;
 }
 
 .fen {
+  margin: 0 0 20px 0;
   width: 25vw;
 }
 
@@ -202,7 +221,12 @@ export default {
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50%);
 }
 
-.moves {
+.move-history {
+  margin: 20px 0 0 0;
+  overflow-y: auto;
+}
+
+.moves-grid {
   display: grid;
   grid-template-columns: repeat(3, max-content);
   grid-column-gap: 20px;
@@ -210,10 +234,15 @@ export default {
   margin: 10px;
   align-items: baseline;
   text-align: left;
+  font-size: 16px;
 }
 
-.moves span:nth-child(3n-2) {
+.moves-grid span:nth-child(3n-2) {
   text-align: right;
+}
+
+.captured-pieces {
+  font-size: 36px;
 }
 
 .squares {

@@ -44,7 +44,7 @@ export class Pawn extends Piece {
             const diagonalSquare = squares[rank + this.dy][file + dx];
             if (this.canCapture(square, diagonalSquare)) {
                 const moveType = diagonalSquare.rank == this.promotionRank ? MoveType.Promotion : MoveType.Standard;
-                const move = new Move(square, diagonalSquare, this, moveType, true);
+                const move = new Move(square, diagonalSquare, this, moveType, true, diagonalSquare.getPiece());
                 legalMoves.set(diagonalSquare, move);
             }
         }
@@ -60,7 +60,7 @@ export class Pawn extends Piece {
                 if (history.enPassantTarget === targetSquare || Pawn.lastMoveWasDoubleStep(piece, history)) {
                     const move = new Move(
                         square, targetSquare, this,
-                        MoveType.EnPassant, true);
+                        MoveType.EnPassant, true, adjacentSquare.getPiece());
 
                     legalMoves.set(targetSquare, move);
                 }
