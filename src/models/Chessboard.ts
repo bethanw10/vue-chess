@@ -11,7 +11,6 @@ import {MoveType} from "@/models/moves/MoveType";
 import {MoveHistory} from "@/models/moves/MoveHistory";
 import {GameResult} from "@/models/GameResult";
 import {FenUtil} from "@/models/FenUtil";
-import {Piece} from "@/models/pieces/Piece";
 
 // todo mobile?
 // todo show taken pieces?
@@ -25,7 +24,6 @@ export class Chessboard {
     activeColor: PieceColour = PieceColour.WHITE;
     promotionInProgress: Move | null = null;
     gameState: GameResult = GameResult.InProgress;
-    capturedPieces: Piece[] = [];
 
     constructor() {
         this.init();

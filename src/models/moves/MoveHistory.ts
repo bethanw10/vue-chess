@@ -4,11 +4,13 @@ import {Move} from "@/models/moves/Move";
 import {MoveSet} from "@/models/moves/MoveSet";
 import {Square} from "@/models/Square";
 import {Pawn} from "@/models/pieces/Pawn";
-import {Piece} from "@/models/pieces/Piece";
 
 export class MoveHistory {
-    moves: MoveSet[] = []
-    capturedPieces: Piece[] = [];
+    moves: MoveSet[] = [];
+    capturedPieces: { [id: string]: string[]; } = {
+        [PieceColour.BLACK]: [],
+        [PieceColour.WHITE]: []
+    };
 
     halfTimeClock: number = 0;
     fullTimeClock: number = 0;
@@ -40,7 +42,7 @@ export class MoveHistory {
         }
 
         if (move.capturedPiece) {
-            this.capturedPieces.push(move.capturedPiece);
+            this.capturedPieces[move.capturedPiece.colour].push(move.capturedPiece.symbol());
         }
 
         this.enPassantTarget = null;
