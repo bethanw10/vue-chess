@@ -16,6 +16,7 @@ import {FenUtil} from "@/models/FenUtil";
 // todo show taken pieces?
 // todo diff indicators by move type?
 // todo sidebar, overflowing PGN
+//make own copy function for performance
 export class Chessboard {
     readonly PROMOTIONS: string[] = ["queen", "knight", "bishop", "rook"];
 

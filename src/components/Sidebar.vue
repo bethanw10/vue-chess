@@ -15,26 +15,30 @@
       <div class="move-history">
         <div class="title">Moves</div>
         <span v-if="board.moveHistory.moves.length === 0"> - </span>
-        <div class="moves-grid">
-          <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
-            <span>{{ i + 1 }}.</span>
-            <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b></span><span v-else>-</span>
-            <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span><span v-else></span>
-          </template>
+        <div class="moves">
+          <div class="moves-grid">
+            <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
+              <span>{{ i + 1 }}.</span>
+              <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b></span><span v-else>-</span>
+              <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span><span v-else></span>
+            </template>
+          </div>
         </div>
       </div>
-      <div class="captured-pieces">
+      <div class="captured-piece-history">
         <div class="title">Captured Pieces</div>
-        <span v-if="whiteCapturedPieces.length === 0 && blackCapturedPieces.length === 0"> - </span>
-        <div>
-          <template v-for="(capturedPiece, i) in whiteCapturedPieces" :key="i">
-            <span class="captured-piece">{{ capturedPiece }}</span>
-          </template>
-        </div>
-        <div>
-          <template v-for="(capturedPiece, i) in blackCapturedPieces" :key="i">
-            <span class="captured-piece">{{ capturedPiece }}</span>
-          </template>
+        <div class="captured-pieces">
+          <span v-if="whiteCapturedPieces.length === 0 && blackCapturedPieces.length === 0"> - </span>
+          <div class="captured-piece-group">
+            <template v-for="(capturedPiece, i) in whiteCapturedPieces" :key="i">
+              <span class="captured-piece">{{ capturedPiece }}</span>
+            </template>
+          </div>
+          <div class="captured-piece-group">
+            <template v-for="(capturedPiece, i) in blackCapturedPieces" :key="i">
+              <span class="captured-piece">{{ capturedPiece }}</span>
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -84,7 +88,7 @@ export default {
   font-size: 14px;
   border-radius: 10px;
   padding: 20px;
-  min-width: 25vw;
+  width: 30vw;
   align-items: center;
   box-sizing: border-box;
 }
@@ -93,6 +97,7 @@ export default {
   font-weight: bold;
   font-size: 18px;
   font-family: 'Lato', sans-serif;
+  margin-bottom: 10px;
 }
 
 .row {
@@ -110,14 +115,24 @@ export default {
 }
 
 .history-group {
-  margin: 20px 0;
-  display: flex;
+  margin: 20px 0 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  grid-column-gap: 5px;
   width: 100%;
   min-height: 100%;
-  justify-content: space-around;
+  height: 100vh;
+}
+
+.moves {
+  overflow-y: auto;
 }
 
 .move-history {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
   overflow-y: auto;
 }
 
@@ -136,8 +151,19 @@ export default {
   text-align: right;
 }
 
-.captured-piece {
+.captured-piece-history {
+  display: flex;
+  flex-direction: column;
+}
+
+.captured-pieces {
+  overflow-y: auto;
+}
+
+.captured-piece-group {
+  word-break: break-all;
   font-size: 32px;
+  margin-bottom: 10px;
 }
 
 </style>
