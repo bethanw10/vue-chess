@@ -25,6 +25,8 @@ export class Chessboard {
     activeColor: PieceColour = PieceColour.WHITE;
     promotionInProgress: Move | null = null;
     gameState: GameResult = GameResult.InProgress;
+    private static FILES: number = 8;
+    private static RANKS: number = 8;
 
     constructor() {
         this.init();
@@ -172,5 +174,32 @@ export class Chessboard {
             default:
                 throw new Error('Unrecognised piece name ' + name)
         }
+    }
+
+    static createEmptyBoard() {
+        const arr: Square[][] = [];
+        for (let file = 0; file < Chessboard.FILES; file++) {
+            if (!arr[file]) {
+                arr[file] = [];
+            }
+            for (let rank = 0; rank < Chessboard.RANKS; rank++) {
+                arr[file][rank] = new Square(file, rank);
+            }
+        }
+        return arr;
+    }
+
+    makeCopy(): Square[][] {
+        const copy = Chessboard.createEmptyBoard();
+
+        for (let i = 0; i < this.squares.length; i++) {
+            const file = this.squares[i];
+            for (let j = 0; j < file.length; j++) {
+                const square = file[j];
+                copy[i][j].setPiece(square.getPiece());
+            }
+        }
+
+        return copy;
     }
 }

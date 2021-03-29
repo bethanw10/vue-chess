@@ -19,7 +19,7 @@ export class FenUtil {
         board.moveHistory = new MoveHistory();
         fen = fen ? fen : FenUtil.DEFAULT_FEN;
 
-        board.squares = this.createEmptyBoard();
+        board.squares = Chessboard.createEmptyBoard();
 
         const data = fen.split(' ');
         const [rows, active, castling, enPassant, halfTime, fullTime] = data;
@@ -188,16 +188,5 @@ export class FenUtil {
 
     private static isLetter = (string: string) => /[a-zA-Z]/.test(string);
 
-    private static createEmptyBoard() {
-        const arr: Square[][] = [];
-        for (let file = 0; file < FenUtil.FILES; file++) {
-            if (!arr[file]) {
-                arr[file] = [];
-            }
-            for (let rank = 0; rank < FenUtil.RANKS; rank++) {
-                arr[file][rank] = new Square(file, rank);
-            }
-        }
-        return arr;
-    }
+
 }

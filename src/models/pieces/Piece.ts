@@ -5,8 +5,6 @@ import {MoveType} from "@/models/moves/MoveType";
 import {Square} from "@/models/Square";
 import {MoveHistory} from "@/models/moves/MoveHistory";
 
-const _ = require('lodash');
-
 export abstract class Piece {
     abstract readonly notation: string;
     colour: PieceColour;
@@ -65,7 +63,7 @@ export abstract class Piece {
     }
 
     moveWouldPutKingInCheck(board: Chessboard, move: Move) {
-        const clonedSquares = _.cloneDeep(board.squares)
+        const clonedSquares = board.makeCopy();
         board.movePiece(clonedSquares, move);
         return board.kingIsInCheck(clonedSquares, this.colour);
     }

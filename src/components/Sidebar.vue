@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="fen">
-      <span class="title">FEN</span>
+      <div class="title">FEN</div>
       <div>{{ board.getFen() }}</div>
     </div>
     <div class="row">
