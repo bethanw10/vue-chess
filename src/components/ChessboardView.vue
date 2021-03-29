@@ -1,6 +1,6 @@
 <template>
   <div class="board-container">
-    <sidebar :board="board"/>
+    <sidebar :board="board" @click="stopMove"/>
     <div class="squares">
       <div v-if="!gameIsInProgress" class="game-result-container">
         <div v-if="board.gameState === gameResults.WhiteWin" class="game-result">White wins!</div>
@@ -13,6 +13,7 @@
               :id="square.notation()"
               :file="square.file" :rank="square.rank"
               :class="['square', squareColour(i, j)]"
+              @click="movePiece(square)"
               @dragover="allowDrop($event)"
               @drop="movePiece(square)">
             <span v-if="square.file === 0" class="notation rank-left">{{ square.rank + 1 }}</span>
@@ -24,6 +25,7 @@
                 :class="[{'moveable' : pieceIsMoveable(square)}, 'piece']"
                 :draggable="pieceIsMoveable(square)"
                 @dragstart="dragStart(square)"
+                @click="dragStart(square)"
                 @dragend="stopMove()"
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
@@ -90,6 +92,10 @@ export default {
       this.currentSquare = null;
     },
     movePiece(toSquare) {
+      if (!this.currentSquare) {
+        return;
+      }
+
       if (this.moveIsLegal(toSquare)) {
         let move = this.currentSquare.getMove(toSquare);
 
@@ -98,6 +104,8 @@ export default {
         }
 
         this.board.makeMove(move);
+        this.currentSquare = null;
+      } else if (!toSquare.getPiece()) {
         this.currentSquare = null;
       }
     },

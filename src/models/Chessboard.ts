@@ -13,10 +13,9 @@ import {GameResult} from "@/models/GameResult";
 import {FenUtil} from "@/models/FenUtil";
 
 // todo mobile?
-// todo show taken pieces?
 // todo diff indicators by move type?
-// todo sidebar, overflowing PGN
-//make own copy function for performance
+// todo win modal
+// todo pretty up
 export class Chessboard {
     private static FILES: number = 8;
     private static RANKS: number = 8;

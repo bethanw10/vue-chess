@@ -82,8 +82,8 @@ export default {
 .sidebar {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 64px);
-  max-height: calc(100vh - 64px);
+  min-height: calc(min(100vh, 100vw) - 64px);
+  max-height: calc(min(100vh, 100vw) - 64px);
   background: rgb(71, 69, 79);
   font-size: 14px;
   border-radius: 10px;
@@ -98,6 +98,7 @@ export default {
 @media only screen and (max-width: 800px) {
   .sidebar {
     max-width: 100vw;
+    height: auto;
     margin: 16px 16px 0 16px;
   }
 }
