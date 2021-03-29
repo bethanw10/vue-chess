@@ -45,7 +45,7 @@
 </template>
 
 // todo flip board
-<script lang="ts">
+<script>
 import {Chessboard} from "@/models/Chessboard";
 import {Piece} from "@/models/pieces/Piece";
 import {GameResult} from "@/models/GameResult";
@@ -162,13 +162,19 @@ export default {
   position: relative;
   display: grid;
   box-sizing: border-box;
-  margin: 32px;
+  margin: 32px 16px;
   border-radius: 10px;
   border: rgb(71, 69, 79) solid 32px;
-  height: calc(100vh - 64px);
-  width: calc(100vh - 64px);
+  height: calc(min(100vh, 100vw) - 64px);
+  width: calc(min(100vh, 100vw) - 64px);
   grid-template-columns: repeat(8, 12.5%);
   grid-template-rows: repeat(8, 12.5%);
+}
+
+@media only screen and (max-width: 800px) {
+  .squares {
+    margin: 16px;
+  }
 }
 
 .square {

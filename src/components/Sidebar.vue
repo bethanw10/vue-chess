@@ -88,9 +88,18 @@ export default {
   font-size: 14px;
   border-radius: 10px;
   padding: 20px;
-  width: 30vw;
+  max-width: 100vh;
+  flex: 1;
+  margin: 0 16px 0 32px;
   align-items: center;
   box-sizing: border-box;
+}
+
+@media only screen and (max-width: 800px) {
+  .sidebar {
+    max-width: 100vw;
+    margin: 16px 16px 0 16px;
+  }
 }
 
 .title {
@@ -107,7 +116,6 @@ export default {
 
 .fen {
   margin: 0 0 20px 0;
-  width: 25vw;
 }
 
 .fen-input {
@@ -115,7 +123,7 @@ export default {
 }
 
 .history-group {
-  margin: 20px 0 0 0;
+  margin: 35px 0 0 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: minmax(0, 1fr);

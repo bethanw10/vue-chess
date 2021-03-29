@@ -18,6 +18,8 @@ import {FenUtil} from "@/models/FenUtil";
 // todo sidebar, overflowing PGN
 //make own copy function for performance
 export class Chessboard {
+    private static FILES: number = 8;
+    private static RANKS: number = 8;
     readonly PROMOTIONS: string[] = ["queen", "knight", "bishop", "rook"];
 
     squares: Square[][] = [];
@@ -25,8 +27,6 @@ export class Chessboard {
     activeColor: PieceColour = PieceColour.WHITE;
     promotionInProgress: Move | null = null;
     gameState: GameResult = GameResult.InProgress;
-    private static FILES: number = 8;
-    private static RANKS: number = 8;
 
     constructor() {
         this.init();
@@ -110,6 +110,20 @@ export class Chessboard {
         return false;
     }
 
+    makeCopy(): Square[][] {
+        const copy = Chessboard.createEmptyBoard();
+
+        for (let i = 0; i < this.squares.length; i++) {
+            const file = this.squares[i];
+            for (let j = 0; j < file.length; j++) {
+                const square = file[j];
+                copy[i][j].setPiece(square.getPiece());
+            }
+        }
+
+        return copy;
+    }
+
     private updateLegalMoves(color: PieceColour) {
         let numMoves = 0;
         for (const square of Chessboard.squaresIterator(this.squares)) {
@@ -187,19 +201,5 @@ export class Chessboard {
             }
         }
         return arr;
-    }
-
-    makeCopy(): Square[][] {
-        const copy = Chessboard.createEmptyBoard();
-
-        for (let i = 0; i < this.squares.length; i++) {
-            const file = this.squares[i];
-            for (let j = 0; j < file.length; j++) {
-                const square = file[j];
-                copy[i][j].setPiece(square.getPiece());
-            }
-        }
-
-        return copy;
     }
 }
