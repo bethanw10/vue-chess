@@ -1,14 +1,10 @@
 <template>
   <div class="board-container">
-    <sidebar :board="board" @click="stopMove"/>
+    <sidebar :board="board" @click="stopMove" @flip="flipBoard"/>
     <div class="squares">
-      <div v-if="!gameIsInProgress" class="game-result-container">
-        <div v-if="board.gameState === gameResults.WhiteWin" class="game-result">White wins!</div>
-        <div v-if="board.gameState === gameResults.BlackWin" class="game-result">Black wins!</div>
-        <div v-if="board.gameState === gameResults.Draw" class="game-result">Draw</div>
-      </div>
-      <template v-for="(file, i) in board.squares">
-        <template :key="square.notation()" v-for="(square, j) in file">
+      <GameResultModal v-if="!gameIsInProgress" @newGame="newGame" :result="board.gameState"/>
+      <template v-for="(rank, i) in orderedSquares">
+        <template :key="square.notation()" v-for="(square, j) in orderedRank(rank)">
           <div
               :id="square.notation()"
               :file="square.file" :rank="square.rank"
@@ -16,10 +12,10 @@
               @click="movePiece(square)"
               @dragover="allowDrop($event)"
               @drop="movePiece(square)">
-            <span v-if="square.file === 0" class="notation rank-left">{{ square.rank + 1 }}</span>
-            <span v-if="square.file === 7" class="notation rank-right">{{ square.rank + 1 }}</span>
-            <span v-if="square.rank === 0" class="notation file-top">{{ square.fileLetter() }}</span>
-            <span v-if="square.rank === 7" class="notation file-bottom">{{ square.fileLetter() }}</span>
+            <span v-if="j === 0" class="notation rank-left">{{ square.rank + 1 }}</span>
+            <span v-if="j === 7" class="notation rank-right">{{ square.rank + 1 }}</span>
+            <span v-if="i === 0" class="notation file-top">{{ square.fileLetter() }}</span>
+            <span v-if="i === 7" class="notation file-bottom">{{ square.fileLetter() }}</span>
             <img
                 v-if="square.getPiece()"
                 :class="[{'moveable' : pieceIsMoveable(square)}, 'piece']"
@@ -46,21 +42,22 @@
   </div>
 </template>
 
-// todo flip board
 <script>
 import {Chessboard} from "@/models/Chessboard";
 import {Piece} from "@/models/pieces/Piece";
-import {GameResult} from "@/models/GameResult";
 import Sidebar from "@/components/Sidebar";
+import GameResultModal from "@/components/GameResultModal";
+import {GameResult} from "@/models/GameResult";
 
 export default {
   name: 'ChessboardView',
-  components: {Sidebar},
+  components: {GameResultModal, Sidebar},
   data() {
     return {
       board: null,
       currentSquare: null,
-      gameResults: GameResult
+      gameResults: GameResult,
+      flipped: true
     }
   },
   created() {
@@ -70,6 +67,11 @@ export default {
     gameIsInProgress() {
       return this.board.gameState === GameResult.InProgress;
     },
+    orderedSquares() {
+      return this.flipped
+          ? this.board.squares.slice().reverse()
+          : this.board.squares;
+    }
   },
   methods: {
     squareColour(i, j) {
@@ -110,7 +112,9 @@ export default {
       }
     },
     pieceIsMoveable(square) {
-      return this.board.activeColor === square.getPiece().colour && !this.board.promotionInProgress;
+      return this.board.activeColor === square.getPiece().colour
+          && !this.board.promotionInProgress
+          && this.gameIsInProgress
     },
     pieceImg(colour, piece) {
       return Piece.imageSrc(colour, piece);
@@ -120,23 +124,33 @@ export default {
     },
     promote(move, piece) {
       this.board.promote(move, piece);
+    },
+    orderedRank(file) {
+      return !this.flipped
+          ? file.slice().reverse()
+          : file;
+    },
+    flipBoard() {
+      this.flipped = !this.flipped;
+    },
+    newGame() {
+      // todo repetition
+      this.board.init();
     }
   },
 }
 </script>
 
-// todo stylus?
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap');
 
 .board-container {
   display: flex;
   font-family: 'Roboto', sans-serif;
-  flex-wrap: wrap;
+  flex-wrap: wrap-reverse;
   height: 100%;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #ddd;
 }
 
 .game-result-container {
@@ -150,18 +164,6 @@ export default {
   z-index: 6;
 }
 
-.game-result {
-  height: 40%;
-  width: 60%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: white;
-  color: #333333;
-  border-radius: 5px;
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 50%);
-}
-
 .moves-grid span:nth-child(3n-2) {
   text-align: right;
 }
@@ -169,7 +171,6 @@ export default {
 .squares {
   position: relative;
   display: grid;
-  box-sizing: border-box;
   margin: 32px 16px;
   border-radius: 10px;
   border: rgb(71, 69, 79) solid 32px;
@@ -179,7 +180,7 @@ export default {
   grid-template-rows: repeat(8, 12.5%);
 }
 
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 900px) {
   .squares {
     margin: 16px;
   }

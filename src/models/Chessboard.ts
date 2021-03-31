@@ -12,10 +12,10 @@ import {MoveHistory} from "@/models/moves/MoveHistory";
 import {GameResult} from "@/models/GameResult";
 import {FenUtil} from "@/models/FenUtil";
 
-// todo mobile?
 // todo diff indicators by move type?
-// todo win modal
 // todo pretty up
+// todo stylus?
+// todo favicon
 export class Chessboard {
     private static FILES: number = 8;
     private static RANKS: number = 8;

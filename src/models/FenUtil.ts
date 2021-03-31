@@ -41,7 +41,7 @@ export class FenUtil {
                     file += 1;
                 } else {
                     const emptySpaces = +character;
-                    file -= emptySpaces
+                    file += emptySpaces
                 }
             }
 

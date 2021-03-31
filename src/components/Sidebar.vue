@@ -1,49 +1,65 @@
 <template>
   <div class="sidebar">
-    <div class="fen">
-      <div class="title">FEN</div>
-      <div>{{ board.getFen() }}</div>
+    <div class="game-controls">
+      <div class="section-title">Controls</div>
+      <div class="row">
+        <button class="wide-button" type="button" @click="newGame">
+          New Game &nbsp;<span class="material-icons">add</span>
+        </button>
+        <button class="wide-button grey" type="button" @click="flipBoard">
+          Flip Board &nbsp;<span class="material-icons">repeat</span>
+        </button>
+      </div>
+
+      <div class="row">
+        <input class="fen-input" v-model="fen" type="text" placeholder="Enter FEN"/>
+        <button type="button" @click="newGame($event, fen)">Load</button>
+      </div>
     </div>
-    <div class="row">
-      <button type="button" @click="newGame">New Game</button>
-    </div>
-    <div class="row">
-      <input class="fen-input" v-model="fen" type="text" placeholder="Enter FEN"/>
-      <button type="button" @click="newGame">Load</button>
-    </div>
-    <div class="history-group">
-      <div class="move-history">
-        <div class="title">Moves</div>
-        <span v-if="board.moveHistory.moves.length === 0"> - </span>
-        <div class="moves">
-          <div class="moves-grid">
-            <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
-              <span>{{ i + 1 }}.</span>
-              <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b></span><span v-else>-</span>
-              <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span><span v-else></span>
-            </template>
-          </div>
+    <div class="game-info">
+      <div class="section-title">Game Information</div>
+      <div class="fen">
+        <div class="title fen-title"><label for="fen">FEN record</label></div>
+        <div class="row">
+          <input id="fen" class="fen-input" readonly :value="currentFen"/>
+          <button class="grey" type="button" @click="copyFen"><span class="material-icons">content_copy</span></button>
         </div>
       </div>
-      <div class="captured-piece-history">
-        <div class="title">Captured Pieces</div>
-        <div class="captured-pieces">
-          <span v-if="whiteCapturedPieces.length === 0 && blackCapturedPieces.length === 0"> - </span>
-          <div class="captured-piece-group">
-            <template v-for="(capturedPiece, i) in whiteCapturedPieces" :key="i">
-              <span class="captured-piece">{{ capturedPiece }}</span>
-            </template>
+      <div class="history-group">
+        <div class="move-history">
+          <div class="title">Moves</div>
+          <span v-if="board.moveHistory.moves.length === 0"> - </span>
+          <div class="moves">
+            <div class="moves-grid">
+              <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
+                <span v-if="moveSet.whiteMove"><b>{{ i + 1 }}. {{ moveSet.whiteMove.toString() }}</b></span><span
+                  v-else>-</span>
+                <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span><span v-else></span>
+              </template>
+            </div>
           </div>
-          <div class="captured-piece-group">
-            <template v-for="(capturedPiece, i) in blackCapturedPieces" :key="i">
-              <span class="captured-piece">{{ capturedPiece }}</span>
-            </template>
+        </div>
+        <div class="captured-piece-history">
+          <div class="title">Captured Pieces</div>
+          <div class="captured-pieces">
+            <span v-if="whiteCapturedPieces.length === 0 && blackCapturedPieces.length === 0"> - </span>
+            <div class="captured-piece-group">
+              <template v-for="(capturedPiece, i) in whiteCapturedPieces" :key="i">
+                <span class="captured-piece">{{ capturedPiece }}</span>
+              </template>
+            </div>
+            <div class="captured-piece-group">
+              <template v-for="(capturedPiece, i) in blackCapturedPieces" :key="i">
+                <span class="captured-piece">{{ capturedPiece }}</span>
+              </template>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 <script>
 import {Chessboard} from "@/models/Chessboard";
 import {PieceColour} from "@/models/pieces/Piece-Colour";
@@ -67,17 +83,25 @@ export default {
     },
     blackCapturedPieces() {
       return this.board.moveHistory.capturedPieces[PieceColour.BLACK].slice().sort();
+    },
+    currentFen() {
+      return this.board.getFen();
     }
   },
   methods: {
-    newGame(fen = '') {
+    newGame(e, fen = '') {
       this.board.init(fen);
+    },
+    flipBoard() {
+      this.$emit("flip");
+    },
+    async copyFen() {
+      await navigator.clipboard.writeText(this.currentFen);
     },
   }
 }
 </script>
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Lato&family=Roboto&display=swap');
 
 .sidebar {
   display: flex;
@@ -87,15 +111,14 @@ export default {
   background: rgb(71, 69, 79);
   font-size: 14px;
   border-radius: 10px;
-  padding: 20px;
-  max-width: 100vh;
+  width: 50vw;
+  max-width: 550px;
   flex: 1;
   margin: 0 16px 0 32px;
   align-items: center;
-  box-sizing: border-box;
 }
 
-@media only screen and (max-width: 800px) {
+@media only screen and (max-width: 900px) {
   .sidebar {
     max-width: 100vw;
     height: auto;
@@ -103,11 +126,46 @@ export default {
   }
 }
 
-.title {
-  font-weight: bold;
-  font-size: 18px;
-  font-family: 'Lato', sans-serif;
+.game-controls, .game-info {
+  width: 100%;
+  padding: 16px 32px 32px;
+}
+
+.game-info {
+  height: 100%;
+  min-height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-controls {
+  border-bottom: 2px solid #7c7988;
+}
+
+.wide-button {
+  width: 100%;
   margin-bottom: 10px;
+}
+
+.wide-button.grey {
+  margin-left: 10px;
+}
+
+.title {
+  color: #dddddd;
+  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.section-title {
+  font-weight: bold;
+  font-size: 22px;
+  font-family: 'Lato', sans-serif;
+  color: white;
+  margin-bottom: 15px;
+  font-variant-caps: all-small-caps;
 }
 
 .row {
@@ -116,7 +174,11 @@ export default {
 }
 
 .fen {
-  margin: 0 0 20px 0;
+  width: 100%;
+}
+
+.fen-input {
+  flex: 1;
 }
 
 .fen-input {
@@ -124,14 +186,14 @@ export default {
 }
 
 .history-group {
-  margin: 35px 0 0 0;
+  margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, auto);
   grid-template-rows: minmax(0, 1fr);
-  grid-column-gap: 5px;
   width: 100%;
   min-height: 100%;
   height: 100vh;
+  text-align: center;
 }
 
 .moves {
@@ -143,11 +205,12 @@ export default {
   align-items: center;
   flex-direction: column;
   overflow-y: auto;
+  text-align: center;
 }
 
 .moves-grid {
   display: grid;
-  grid-template-columns: repeat(3, max-content);
+  grid-template-columns: repeat(2, max-content);
   grid-column-gap: 20px;
   grid-row-gap: 5px;
   margin: 10px;
@@ -172,7 +235,6 @@ export default {
 .captured-piece-group {
   word-break: break-all;
   font-size: 32px;
-  margin-bottom: 10px;
 }
 
 </style>
