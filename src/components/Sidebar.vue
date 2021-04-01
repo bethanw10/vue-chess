@@ -121,6 +121,7 @@ export default {
 
 @media only screen and (max-width: 900px) {
   .sidebar {
+    max-height: fit-content;
     max-width: 100vw;
     height: auto;
     margin: 16px 16px 0 16px;
