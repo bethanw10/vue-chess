@@ -15,7 +15,6 @@ import {FenUtil} from "@/models/FenUtil";
 // todo diff indicators by move type?
 // todo pretty up
 // todo stylus?
-// todo favicon
 export class Chessboard {
     private static FILES: number = 8;
     private static RANKS: number = 8;

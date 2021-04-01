@@ -26,6 +26,8 @@
                 :src="square.getPiece().imageSrc()"
                 :alt="square.getPiece().constructor.name"/>
             <div v-if="moveIsLegal(square)" class="move-indicator"/>
+            <PromotionIndicator class="move-type-indicator" v-if="moveIsPromotion(square)"/>
+            <CastlingIndicator class="move-type-indicator" v-if="moveIsCastle(square)"/>
             <div v-if="waitingForPromotion(square)" class="promotion">
               <template v-for="promotionPiece in board.PROMOTIONS" :key="promotionPiece">
                 <img
@@ -48,10 +50,13 @@ import {Piece} from "@/models/pieces/Piece";
 import Sidebar from "@/components/Sidebar";
 import GameResultModal from "@/components/GameResultModal";
 import {GameResult} from "@/models/GameResult";
+import PromotionIndicator from "@/components/PromotionIndicator";
+import {MoveType} from "@/models/moves/MoveType";
+import CastlingIndicator from "@/components/CastlingIndicator";
 
 export default {
   name: 'ChessboardView',
-  components: {GameResultModal, Sidebar},
+  components: {CastlingIndicator, PromotionIndicator, GameResultModal, Sidebar},
   data() {
     return {
       board: null,
@@ -89,6 +94,19 @@ export default {
       return this.currentSquare &&
           this.currentSquare.getPiece() &&
           this.currentSquare.getPiece().squareIsLegalMove(toSquare);
+    },
+    moveIsPromotion(toSquare) {
+      if (this.moveIsLegal(toSquare)) {
+        let move = this.currentSquare.getMove(toSquare);
+        return move.type === MoveType.Promotion;
+      }
+    },
+    moveIsCastle(toSquare) {
+      if (this.moveIsLegal(toSquare)) {
+        let move = this.currentSquare.getMove(toSquare);
+        return move.type === MoveType.KingSideCastle
+            || move.type === MoveType.QueenSideCastle;
+      }
     },
     stopMove() {
       this.currentSquare = null;
@@ -275,12 +293,32 @@ export default {
   pointer-events: none;
 }
 
-.piece + .move-indicator {
+.piece ~ .move-indicator {
   height: 100%;
   width: 100%;
   background-color: #b03535;
   top: 0;
   left: 0;
   mask: radial-gradient(transparent 50%, #000000 50%);
+}
+
+.move-type-indicator {
+  position: absolute;
+  height: 30%;
+  width: 30%;
+  top: 35%;
+  left: 35%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 30%;
+}
+
+.piece ~ .move-type-indicator {
+  height: 40%;
+  width: 40%;
+  top: 30%;
+  left: 30%;
+  fill: #b03535;
+  opacity: 60%;
 }
 </style>

@@ -32,8 +32,9 @@
           <div class="moves">
             <div class="moves-grid">
               <template v-for="(moveSet, i) in board.moveHistory.moves" :key="i">
-                <span v-if="moveSet.whiteMove"><b>{{ i + 1 }}. {{ moveSet.whiteMove.toString() }}</b></span><span
-                  v-else>-</span>
+                <span>{{ i + 1 }}. </span>
+                <span v-if="moveSet.whiteMove"><b>{{ moveSet.whiteMove.toString() }}</b> </span>
+                <span v-else>-</span>
                 <span v-if="moveSet.blackMove"><b>{{ moveSet.blackMove.toString() }}</b></span><span v-else></span>
               </template>
             </div>
@@ -188,7 +189,7 @@ export default {
 .history-group {
   margin-top: 20px;
   display: grid;
-  grid-template-columns: repeat(2, auto);
+  grid-template-columns: minmax(auto, 1fr) 1fr;
   grid-template-rows: minmax(0, 1fr);
   width: 100%;
   min-height: 100%;
@@ -210,9 +211,9 @@ export default {
 
 .moves-grid {
   display: grid;
-  grid-template-columns: repeat(2, max-content);
-  grid-column-gap: 20px;
-  grid-row-gap: 5px;
+  grid-template-columns: repeat(3, auto);
+  grid-column-gap: 15px;
+  grid-row-gap: 2px;
   margin: 10px;
   align-items: baseline;
   text-align: left;
