@@ -119,7 +119,7 @@ export default {
   align-items: center;
 }
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 750px) {
   .sidebar {
     max-height: fit-content;
     max-width: 100vw;

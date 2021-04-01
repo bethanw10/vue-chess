@@ -198,7 +198,7 @@ export default {
   grid-template-rows: repeat(8, 12.5%);
 }
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 750px) {
   .squares {
     margin: 16px;
   }
