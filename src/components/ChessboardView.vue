@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script>
+<script >
 import {Chessboard} from "@/models/Chessboard";
 import {Piece} from "@/models/pieces/Piece";
 import Sidebar from "@/components/Sidebar";
@@ -310,7 +310,7 @@ export default {
   left: 35%;
   z-index: 0;
   pointer-events: none;
-  opacity: 30%;
+  opacity: 0.3;
 }
 
 .piece ~ .move-type-indicator {
@@ -319,6 +319,6 @@ export default {
   top: 30%;
   left: 30%;
   fill: #b03535;
-  opacity: 60%;
+  opacity: 0.6;
 }
 </style>
